@@ -87,7 +87,13 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
     padding = node.padding[0]
 
     if padding > 1:
-        raise ValueError('Unsuported padding size for convolution')
+        padding_name = output_name + '_pad'
+        padding_layer = keras.layers.ZeroPadding2D(
+            padding=node.padding,
+            name=padding_name
+        )
+        layers[padding_name] = padding_layer(layers[input_name])
+        input_name = padding_name
 
     weights = None
     if has_bias:
@@ -183,12 +189,26 @@ def convert_pooling(node, node_name, input_name, output_name, layers):
     height, width = node.kernel_size
     stride_height, stride_width = node.stride
 
-    if node.padding[0] != node.padding[1]:
+    if isinstance(node.padding, tuple) and node.padding[0] != node.padding[1]:
         raise ValueError('Unsuported padding size for pooling')
 
+    if isinstance(node.padding, int):
+        padding = node.padding
+    else:
+        padding = node.padding[0]
+
     border_mode = 'valid'
-    if node.padding[0] == 1:
+    if padding == 1:
         border_mode = 'same'
+
+    if padding > 1:
+        padding_name = output_name + '_pad'
+        padding_layer = keras.layers.ZeroPadding2D(
+            padding=node.padding,
+            name=padding_name
+        )
+        layers[padding_name] = padding_layer(layers[input_name])
+        input_name = padding_name
 
     # Pooling type
     if node_name.startswith('Max'):
@@ -209,7 +229,6 @@ def convert_pooling(node, node_name, input_name, output_name, layers):
         raise ValueError('Unknown pooling type')
 
     layers[output_name] = pooling(layers[input_name])
-    print(node.kernel_size, layers[output_name])
 
 
 def convert_elementwise_add(node, node_name, input_names, output_name, layers):
