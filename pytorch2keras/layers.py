@@ -84,9 +84,10 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
     if node.padding[0] != node.padding[1]:
         raise ValueError('Unsuported padding size for convolution')
 
+    print(node)
     padding = node.padding[0]
 
-    if padding > 1:
+    if padding > 0:
         padding_name = output_name + '_pad'
         padding_layer = keras.layers.ZeroPadding2D(
             padding=node.padding,
@@ -102,8 +103,8 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
         weights = [W]
 
     border_mode = 'valid'
-    if padding == 1:
-        border_mode = 'same'
+    # if padding == 1:
+    #     border_mode = 'same'
 
     if node.transposed:
         conv = keras.layers.Conv2DTranspose(
@@ -198,10 +199,10 @@ def convert_pooling(node, node_name, input_name, output_name, layers):
         padding = node.padding[0]
 
     border_mode = 'valid'
-    if padding == 1:
-        border_mode = 'same'
+    # if padding == 1:
+    #     border_mode = 'same'
 
-    if padding > 1:
+    if padding > 0:
         padding_name = output_name + '_pad'
         padding_layer = keras.layers.ZeroPadding2D(
             padding=node.padding,
