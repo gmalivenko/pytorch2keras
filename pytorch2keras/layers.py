@@ -84,7 +84,10 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
     if node.padding[0] != node.padding[1]:
         raise ValueError('Unsuported padding size for convolution')
 
-    print(node)
+    if node.dilation[0] != node.dilation[1]:
+        raise ValueError('Unsuported dilation rate for convolution')
+    dilation_rate = node.dilation[0]
+
     padding = node.padding[0]
 
     if padding > 0:
@@ -115,6 +118,7 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
             weights=weights,
             use_bias=has_bias,
             activation=None,
+            dilation_rate=dilation_rate,
             name=output_name
         )
     else:
@@ -126,6 +130,7 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
             weights=weights,
             use_bias=has_bias,
             activation=None,
+            dilation_rate=dilation_rate,
             name=output_name
         )
     layers[output_name] = conv(layers[input_name])
