@@ -89,7 +89,6 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
     dilation_rate = node.dilation[0]
 
     padding = node.padding[0]
-
     if padding > 0:
         padding_name = output_name + '_pad'
         padding_layer = keras.layers.ZeroPadding2D(
@@ -272,6 +271,40 @@ def convert_threshold(node, node_name, input_name, output_name, layers):
     layers[output_name] = relu(layers[input_name])
 
 
+def convert_leakyrelu(node, node_name, input_name, output_name, layers):
+    """
+    Convert relu activation.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting LeakyRELU ...')
+    leakyrelu = \
+        keras.layers.LeakyReLU(alpha=node.additional_args[0], name=output_name)
+    layers[output_name] = leakyrelu(layers[input_name])
+
+
+def convert_prelu(node, node_name, input_name, output_name, layers):
+    """
+    Convert PReLU activation.
+    TODO: handle single-value tensor and raise `wrong shape` exception.
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting PReLU ...')
+    a = node.next_functions[1][0].variable.data.numpy()
+    prelu = keras.layers.PReLU(name=output_name, weights=np.array([a]))
+    layers[output_name] = prelu(layers[input_name])
+
+
 def convert_selu(node, node_name, input_name, output_name, layers):
     """
     Convert selu activation.
@@ -313,6 +346,8 @@ AVAILABLE_CONVERTERS = {
     'Add': convert_elementwise_add,
     'View': convert_reshape,
     'Threshold': convert_threshold,
+    'LeakyReLU': convert_leakyrelu,
+    'PReLU': convert_prelu,
     'SELU': convert_selu,
     'Tanh': convert_tanh,
 }

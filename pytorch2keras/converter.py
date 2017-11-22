@@ -11,7 +11,7 @@ Pytorch to Keras converter.
 
 def collect_nodes(var):
     """
-    Walks the python graph buttom-up and collects all the nodes.
+    Walk throught pytorch graph buttom-up and collects all the nodes.
     To avoid redundand computations TransposeBackward is skipped
     when follows AddmmBackward type.
 
@@ -87,9 +87,18 @@ def create_keras_model(nodes, layers, input_node_name='input'):
                 input_name = input_name[0]
 
         output_name = node_name if nodes else output_node_name
-        AVAILABLE_CONVERTERS[node_type](
-            node, node_name, input_name, output_name, layers
-        )
+        try:
+            AVAILABLE_CONVERTERS[node_type](
+                node, node_name, input_name, output_name, layers
+            )
+        except KeyError:
+            print(
+                'An error occured.'
+                'The {0} can\'t be converted because'
+                ' it is not currently supported.'.format(
+                    node_type)
+            )
+            raise KeyError('Layer is not currently supported.')
     return layers[output_node_name]
 
 
