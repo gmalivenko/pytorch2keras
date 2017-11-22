@@ -12,6 +12,8 @@ Pytorch to Keras model convertor. Very beta for now.
 * Add (element-wise)
 * ReLU
 * SELU
+* LeakyReLU
+* PReLU
 * Tanh
 
 ## Usage
