@@ -385,6 +385,22 @@ def convert_softsign(node, node_name, input_name, output_name, layers):
     layers[output_name] = softsign(layers[input_name])
 
 
+def convert_sigmoid(node, node_name, input_name, output_name, layers):
+    """
+    Convert sigmoid activation.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting sigmoid ...')
+    sigmoid = keras.layers.Activation('sigmoid', name=output_name)
+    layers[output_name] = sigmoid(layers[input_name])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -401,4 +417,5 @@ AVAILABLE_CONVERTERS = {
     'Softmax': convert_softmax,
     'Softplus': convert_softplus,
     'Softsign': convert_softsign,
+    'Sigmoid': convert_sigmoid,
 }
