@@ -56,18 +56,33 @@ That's all! If all is ok, the Keras model was stored to the `k_model` variable.
 
 ## Supported layers
 
+Layers:
+
 * Linear
 * Conv2d
 * ConvTranspose2d
 * MaxPool2d
 * AvgPool2d
+
+Reshape:
+
 * View
-* Add (element-wise)
+
+Activations:
+
 * ReLU
-* SELU
 * LeakyReLU
 * PReLU
+* SELU
 * Tanh
+* Softmax
+* Softplus
+* Softsign
+* Sigmoid
+
+Element-wise:
+
+* Add (element-wise)
 
 ## Usage
 Look at the `tests` directory.
