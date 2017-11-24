@@ -369,6 +369,22 @@ def convert_softplus(node, node_name, input_name, output_name, layers):
     layers[output_name] = softplus(layers[input_name])
 
 
+def convert_softsign(node, node_name, input_name, output_name, layers):
+    """
+    Convert softsign activation.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting softsign ...')
+    softsign = keras.layers.Activation('softsign', name=output_name)
+    layers[output_name] = softsign(layers[input_name])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -384,4 +400,5 @@ AVAILABLE_CONVERTERS = {
     'Tanh': convert_tanh,
     'Softmax': convert_softmax,
     'Softplus': convert_softplus,
+    'Softsign': convert_softsign,
 }
