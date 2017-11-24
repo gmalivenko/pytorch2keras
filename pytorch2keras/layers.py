@@ -337,6 +337,22 @@ def convert_tanh(node, node_name, input_name, output_name, layers):
     layers[output_name] = tanh(layers[input_name])
 
 
+def convert_softmax(node, node_name, input_name, output_name, layers):
+    """
+    Convert tanh activation.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting softmax ...')
+    softmax = keras.layers.Activation('softmax', name=output_name)
+    layers[output_name] = softmax(layers[input_name])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -350,4 +366,5 @@ AVAILABLE_CONVERTERS = {
     'PReLU': convert_prelu,
     'SELU': convert_selu,
     'Tanh': convert_tanh,
+    'Softmax': convert_softmax,
 }
