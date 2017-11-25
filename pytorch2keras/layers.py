@@ -401,6 +401,24 @@ def convert_sigmoid(node, node_name, input_name, output_name, layers):
     layers[output_name] = sigmoid(layers[input_name])
 
 
+def convert_dropout(node, node_name, input_name, output_name, layers):
+    """
+    Convert dropout.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting dropout ...')
+
+    print(dir(node), node.next_functions, node.noise)
+    dropout = keras.layers.Dropout(rate=node.p, noise_shape=node.noise.numpy())
+    layers[output_name] = dropout(layers[input_name])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -418,4 +436,5 @@ AVAILABLE_CONVERTERS = {
     'Softplus': convert_softplus,
     'Softsign': convert_softsign,
     'Sigmoid': convert_sigmoid,
+    'Dropout': convert_dropout,
 }
