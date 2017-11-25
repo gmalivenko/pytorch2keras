@@ -490,6 +490,25 @@ def convert_elementwise_mul(node, node_name, input_names, output_name, layers):
     layers[output_name] = mul([model0, model1])
 
 
+def convert_elementwise_sub(node, node_name, input_names, output_name, layers):
+    """
+    Convert elementwise subtraction.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting elementwise_sub ...')
+    model0 = layers[input_names[0]]
+    model1 = layers[input_names[1]]
+
+    sub = keras.layers.Subtract(name=output_name)
+    layers[output_name] = sub([model0, model1])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -509,4 +528,5 @@ AVAILABLE_CONVERTERS = {
     'Dropout': convert_dropout,
     'Add': convert_elementwise_add,
     'Mul': convert_elementwise_mul,
+    'Sub': convert_elementwise_sub,
 }
