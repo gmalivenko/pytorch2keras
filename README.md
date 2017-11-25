@@ -82,7 +82,9 @@ Activations:
 
 Element-wise:
 
-* Add (element-wise)
+* Addition
+* Multiplication
+* Subtraction
 
 ## Usage
 Look at the `tests` directory.
