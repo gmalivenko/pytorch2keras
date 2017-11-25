@@ -447,8 +447,7 @@ def convert_dropout(node, node_name, input_name, output_name, layers):
     """
     print('Conerting dropout ...')
 
-    print(dir(node), node.next_functions, node.noise)
-    dropout = keras.layers.Dropout(rate=node.p, noise_shape=node.noise.numpy())
+    dropout = keras.layers.Dropout(rate=node.p)
     layers[output_name] = dropout(layers[input_name])
 
 
@@ -509,6 +508,25 @@ def convert_elementwise_sub(node, node_name, input_names, output_name, layers):
     layers[output_name] = sub([model0, model1])
 
 
+def convert_concat(node, node_name, input_names, output_name, layers):
+    """
+    Convert concatenation.
+
+    Args:
+        node: pytorch node element.
+        node_name: pytorch node name
+        input_name: pytorch input node name
+        output_name: pytorch output node name
+        layers: dictionary with keras tensors
+    """
+    print('Conerting concat ...')
+    model0 = layers[input_names[0]]
+    model1 = layers[input_names[1]]
+
+    cat = keras.layers.Concatenate(name=output_name, axis=node.dim)
+    layers[output_name] = cat([model0, model1])
+
+
 AVAILABLE_CONVERTERS = {
     'Addmm': convert_dense,
     'ConvNd': convert_convolution,
@@ -529,4 +547,5 @@ AVAILABLE_CONVERTERS = {
     'Add': convert_elementwise_add,
     'Mul': convert_elementwise_mul,
     'Sub': convert_elementwise_sub,
+    'Concat': convert_concat,
 }
