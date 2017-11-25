@@ -11,6 +11,9 @@ To use converter properly, please, make changes in your `~/.keras/keras.json`:
 ...
 ```
 
+Note 1: some layers parameters (like ceiling and etc) isn't supported.
+Note 2: recurrent layers isn't supported too.
+
 ## How to
 
 It's a convertor of pytorch graph to a keras (tensorflow backend) graph.
@@ -85,6 +88,14 @@ Element-wise:
 * Addition
 * Multiplication
 * Subtraction
+
+## Models converted with pytorch2keras
+
+* ResNet18
+* ResNet50
+* SqueezeNet
+* DenseNet
+* AlexNet
 
 ## Usage
 Look at the `tests` directory.
