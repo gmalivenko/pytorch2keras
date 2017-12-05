@@ -7,11 +7,13 @@ To use converter properly, please, make changes in your `~/.keras/keras.json`:
 
 ```
 ...
+"backend": "tensorflow",
 "image_data_format": "channels_first",
 ...
 ```
 
 Note 1: some layers parameters (like ceiling and etc) isn't supported.
+
 Note 2: recurrent layers isn't supported too.
 
 ## How to
