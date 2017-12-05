@@ -79,7 +79,7 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
         else:
             W = weights_var.data.numpy().transpose(2, 3, 1, 0)
             height, width, channels, n_filters = W.shape
-        
+
         assert node.output_padding == (0, 0)
 
         if node.padding[0] != node.padding[1]:
@@ -140,7 +140,6 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
             raise ValueError('Conv1d(transposed) is unsupported')
         else:
             W = weights_var.data.numpy().transpose(2, 1, 0)
-            print(W.shape)
             width, channels, n_filters = W.shape
 
         assert node.output_padding == (0, 0)
