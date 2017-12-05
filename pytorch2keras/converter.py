@@ -102,17 +102,20 @@ def create_keras_model(nodes, layers, input_node_name='input'):
     return layers[output_node_name]
 
 
-def pytorch_to_keras(input_shape, pytorch_output):
+def pytorch_to_keras(input_shape, pytorch_output, change_ordering=False):
     """
     By given nodes list convert layers with specified convertors.
 
     Args:
         input_shape: keras input shape (using for InputLayer creation)
         pytorch_output: putorch model output
+        change_ordering: change CHW to HWC
 
     Returns:
         model: created keras model.
     """
+    from keras import backend as K
+    K.set_image_data_format('channels_first')
     nodes = collect_nodes(pytorch_output)
 
     layers = dict()
@@ -122,5 +125,36 @@ def pytorch_to_keras(input_shape, pytorch_output):
 
     output = create_keras_model(nodes, layers)
     model = keras.models.Model(inputs=layers['input'], outputs=output)
+
+    if change_ordering:
+        import numpy as np
+        conf = model.get_config()
+        for layer in conf['layers']:
+            if layer['config'] and 'batch_input_shape' in layer['config']:
+                layer['config']['batch_input_shape'] = \
+                    tuple(np.reshape(
+                        [
+                            None,
+                            *layer['config']['batch_input_shape'][2:][:],
+                            layer['config']['batch_input_shape'][1]
+                        ], -1
+                    ))
+            if layer['config'] and 'data_format' in layer['config']:
+                layer['config']['data_format'] = 'channels_last'
+            if layer['config'] and 'axis' in layer['config']:
+                layer['config']['axis'] = 3
+
+        K.set_image_data_format('channels_last')
+        model_tf_ordering = keras.models.Model.from_config(conf)
+
+        # from keras.utils.layer_utils import convert_all_kernels_in_model
+        # convert_all_kernels_in_model(model)
+
+        for dst_layer, src_layer in zip(
+            model_tf_ordering.layers, model.layers
+        ):
+            dst_layer.set_weights(src_layer.get_weights())
+
+        model = model_tf_ordering
 
     return model
