@@ -81,16 +81,9 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
             height, width, channels, n_filters = W.shape
 
         assert node.output_padding == (0, 0)
+        border_mode = 'valid'
 
-        if node.padding[0] != node.padding[1]:
-            raise ValueError('Unsuported padding size for convolution')
-
-        if node.dilation[0] != node.dilation[1]:
-            raise ValueError('Unsuported dilation rate for convolution')
-        dilation_rate = node.dilation[0]
-
-        padding = node.padding[0]
-        if padding > 0:
+        if node.padding[0] == node.padding[1] and node.padding[0] > 0:
             padding_name = output_name + '_pad'
             padding_layer = keras.layers.ZeroPadding2D(
                 padding=node.padding,
@@ -99,17 +92,27 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
             layers[padding_name] = padding_layer(layers[input_name])
             input_name = padding_name
 
+        if node.padding[0] != node.padding[1]:
+            if node.padding[0] == height // 2 and\
+               node.padding[1] == width // 2:
+                border_mode = 'same'
+            else:
+                raise ValueError('Unsuported padding size for convolution')
+
+        if node.dilation[0] != node.dilation[1]:
+            raise ValueError('Unsuported dilation rate for convolution')
+        dilation_rate = node.dilation[0]
+
         weights = None
         if has_bias:
             weights = [W, biases]
         else:
             weights = [W]
 
-        border_mode = 'valid'
-        # if padding == 1:
-        #     border_mode = 'same'
-
         if node.transposed:
+            # if padding > 0:
+            #     border_mode = 'same'
+
             conv = keras.layers.Conv2DTranspose(
                 filters=n_filters,
                 kernel_size=(height, width),
