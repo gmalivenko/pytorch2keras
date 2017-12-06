@@ -519,11 +519,9 @@ def convert_concat(node, node_name, input_names, output_name, layers):
         layers: dictionary with keras tensors
     """
     print('Conerting concat ...')
-    model0 = layers[input_names[0]]
-    model1 = layers[input_names[1]]
-
+    concat_nodes = [layers[i] for i in input_names]
     cat = keras.layers.Concatenate(name=output_name, axis=node.dim)
-    layers[output_name] = cat([model0, model1])
+    layers[output_name] = cat(concat_nodes)
 
 
 AVAILABLE_CONVERTERS = {
