@@ -91,6 +91,11 @@ Element-wise:
 * Multiplication
 * Subtraction
 
+## Unsupported parameters
+
+* Pooling: count_include_pad, dilation, ceil_mode
+* Convolution: group
+
 ## Models converted with pytorch2keras
 
 * ResNet18
@@ -98,6 +103,7 @@ Element-wise:
 * SqueezeNet
 * DenseNet
 * AlexNet
+* Inception (v4 only)
 
 ## Usage
 Look at the `tests` directory.

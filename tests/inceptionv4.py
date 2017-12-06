@@ -101,7 +101,7 @@ class Inception_A(nn.Module):
         )
 
         self.branch3 = nn.Sequential(
-            nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
+            nn.AvgPool2d(3, stride=1, padding=1),
             BasicConv2d(384, 96, kernel_size=1, stride=1)
         )
 
@@ -157,7 +157,7 @@ class Inception_B(nn.Module):
         )
 
         self.branch3 = nn.Sequential(
-            nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
+            nn.AvgPool2d(3, stride=1, padding=1),
             BasicConv2d(1024, 128, kernel_size=1, stride=1)
         )
 
@@ -215,7 +215,7 @@ class Inception_C(nn.Module):
         self.branch2_3b = BasicConv2d(512, 256, kernel_size=(3,1), stride=1, padding=(1,0))
         
         self.branch3 = nn.Sequential(
-            nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
+            nn.AvgPool2d(3, stride=1, padding=1),
             BasicConv2d(1536, 256, kernel_size=1, stride=1)
         )
 
@@ -273,7 +273,7 @@ class InceptionV4(nn.Module):
             Inception_C(),
             Inception_C(),
             Inception_C(),
-            nn.AvgPool2d(8, count_include_pad=False)
+            nn.AvgPool2d(8)
         )
         self.classif = nn.Linear(1536, num_classes)
 
