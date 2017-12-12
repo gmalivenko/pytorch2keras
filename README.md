@@ -3,6 +3,8 @@ Pytorch to Keras model convertor. Very beta for now.
 
 ## Important notice
 
+In that moment the only PyTorch 0.2 is supported. You can follow #6 for the further information about 0.3.
+
 To use converter properly, please, make changes in your `~/.keras/keras.json`:
 
 ```
