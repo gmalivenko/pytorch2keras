@@ -13,7 +13,7 @@ def convert_dense(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting dense ...')
+    print('Converting dense ...')
     W = \
         node.next_functions[2][0].next_functions[0][0].variable.data.numpy()
     output_channels, input_channels = W.shape
@@ -45,7 +45,7 @@ def convert_reshape(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting reshape ...')
+    print('Converting reshape ...')
     target_shape = node.new_sizes
     reshape = keras.layers.Reshape(target_shape[1:], name=output_name)
     layers[output_name] = reshape(layers[input_name])
@@ -62,7 +62,7 @@ def convert_convolution(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting convolution ...')
+    print('Converting convolution ...')
     weights_var = node.next_functions[1][0].variable
 
     if node.next_functions[2][0]:
@@ -200,7 +200,7 @@ def convert_batchnorm(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting batchnorm ...')
+    print('Converting batchnorm ...')
 
     weights = None
     biases = None
@@ -243,7 +243,7 @@ def convert_pooling(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting pooling ...')
+    print('Converting pooling ...')
 
     height, width = node.kernel_size
     stride_height, stride_width = node.stride
@@ -301,7 +301,7 @@ def convert_threshold(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting RELU ...')
+    print('Converting RELU ...')
     relu = keras.layers.Activation('relu', name=output_name)
     layers[output_name] = relu(layers[input_name])
 
@@ -317,7 +317,7 @@ def convert_leakyrelu(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting LeakyRELU ...')
+    print('Converting LeakyRELU ...')
     leakyrelu = \
         keras.layers.LeakyReLU(alpha=node.additional_args[0], name=output_name)
     layers[output_name] = leakyrelu(layers[input_name])
@@ -334,7 +334,7 @@ def convert_prelu(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting PReLU ...')
+    print('Converting PReLU ...')
     a = node.next_functions[1][0].variable.data.numpy()
     prelu = keras.layers.PReLU(name=output_name, weights=np.array([a]))
     layers[output_name] = prelu(layers[input_name])
@@ -351,7 +351,7 @@ def convert_selu(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting SELU ...')
+    print('Converting SELU ...')
     selu = keras.layers.Activation('selu', name=output_name)
     layers[output_name] = selu(layers[input_name])
 
@@ -367,7 +367,7 @@ def convert_tanh(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting tanh ...')
+    print('Converting tanh ...')
     tanh = keras.layers.Activation('tanh', name=output_name)
     layers[output_name] = tanh(layers[input_name])
 
@@ -383,7 +383,7 @@ def convert_softmax(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting softmax ...')
+    print('Converting softmax ...')
     softmax = keras.layers.Activation('softmax', name=output_name)
     layers[output_name] = softmax(layers[input_name])
 
@@ -399,7 +399,7 @@ def convert_softplus(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting softplus ...')
+    print('Converting softplus ...')
     softplus = keras.layers.Activation('softplus', name=output_name)
     layers[output_name] = softplus(layers[input_name])
 
@@ -415,7 +415,7 @@ def convert_softsign(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting softsign ...')
+    print('Converting softsign ...')
     softsign = keras.layers.Activation('softsign', name=output_name)
     layers[output_name] = softsign(layers[input_name])
 
@@ -431,7 +431,7 @@ def convert_sigmoid(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting sigmoid ...')
+    print('Converting sigmoid ...')
     sigmoid = keras.layers.Activation('sigmoid', name=output_name)
     layers[output_name] = sigmoid(layers[input_name])
 
@@ -447,7 +447,7 @@ def convert_dropout(node, node_name, input_name, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting dropout ...')
+    print('Converting dropout ...')
 
     dropout = keras.layers.Dropout(rate=node.p)
     layers[output_name] = dropout(layers[input_name])
@@ -464,7 +464,7 @@ def convert_elementwise_add(node, node_name, input_names, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting elementwise_add ...')
+    print('Converting elementwise_add ...')
     model0 = layers[input_names[0]]
     model1 = layers[input_names[1]]
 
@@ -483,7 +483,7 @@ def convert_elementwise_mul(node, node_name, input_names, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting elementwise_mul ...')
+    print('Converting elementwise_mul ...')
     model0 = layers[input_names[0]]
     model1 = layers[input_names[1]]
 
@@ -502,7 +502,7 @@ def convert_elementwise_sub(node, node_name, input_names, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting elementwise_sub ...')
+    print('Converting elementwise_sub ...')
     model0 = layers[input_names[0]]
     model1 = layers[input_names[1]]
 
@@ -521,7 +521,7 @@ def convert_concat(node, node_name, input_names, output_name, layers):
         output_name: pytorch output node name
         layers: dictionary with keras tensors
     """
-    print('Conerting concat ...')
+    print('Converting concat ...')
     concat_nodes = [layers[i] for i in input_names]
     cat = keras.layers.Concatenate(name=output_name, axis=node.dim)
     layers[output_name] = cat(concat_nodes)
