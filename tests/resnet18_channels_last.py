@@ -186,7 +186,7 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        k_model = pytorch_to_keras((3, 224, 224,), output, change_ordering=True)
+        k_model = pytorch_to_keras(model, input_var, (3, 224, 224,), verbose=True, change_ordering=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np.transpose(0, 2, 3, 1))

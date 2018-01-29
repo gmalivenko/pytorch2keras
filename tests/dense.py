@@ -16,7 +16,7 @@ class TestDense(nn.Module):
 
     def __init__(self, inp=10, out=16, bias=True):
         super(TestDense, self).__init__()
-        self.linear = nn.Linear(inp, out, bias=bias)
+        self.linear = nn.Linear(inp, out, bias=True)
 
     def forward(self, x):
         x = self.linear(x)
@@ -32,9 +32,10 @@ if __name__ == '__main__':
 
         input_np = np.random.uniform(0, 1, (1, inp))
         input_var = Variable(torch.FloatTensor(input_np))
+
         output = model(input_var)
 
-        k_model = pytorch_to_keras((inp,), output)
+        k_model = pytorch_to_keras(model, input_var, (inp,), verbose=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)

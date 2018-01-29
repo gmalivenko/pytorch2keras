@@ -16,8 +16,8 @@ class AvgPool(nn.Module):
 
     def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
         super(AvgPool, self).__init__()
-        self.conv2d = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
-        self.pool = nn.AvgPool2d(kernel_size=2)
+        self.conv2d = nn.Conv2d(inp, out, kernel_size=kernel_size, padding=3, bias=bias)
+        self.pool = nn.AvgPool2d(kernel_size=kernel_size, count_include_pad=True)
 
     def forward(self, x):
         x = self.conv2d(x)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        k_model = pytorch_to_keras((inp, inp, inp,), output)
+        k_model = pytorch_to_keras(model, input_var, (inp, inp, inp,), verbose=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)

@@ -16,7 +16,7 @@ class TestSigmoid(nn.Module):
 
     def __init__(self, inp=10, out=16, bias=True):
         super(TestSigmoid, self).__init__()
-        self.linear = nn.Linear(inp, out, bias=bias)
+        self.linear = nn.Linear(inp, out, bias=True)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        k_model = pytorch_to_keras((inp,), output)
+        k_model = pytorch_to_keras(model, input_var, (inp,), verbose=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)

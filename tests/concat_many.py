@@ -16,13 +16,16 @@ class TestConcatMany(nn.Module):
 
     def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
         super(TestConcatMany, self).__init__()
-        k = np.random.randint(2, 30)
-        self.conv2ds = \
-            [nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias) for i in range(k)]
+        self.conv2_1 = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
+        self.conv2_2 = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
+        self.conv2_3 = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
 
     def forward(self, x):
-        conv2ds_results = [c(x) for c in self.conv2ds]
-        x = torch.cat(conv2ds_results, dim=1)
+        x = torch.cat([
+            self.conv2_1(x),
+            self.conv2_2(x),
+            self.conv2_3(x)
+        ], dim=1)
         return x
 
 
@@ -39,7 +42,7 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        k_model = pytorch_to_keras((inp, inp, inp,), output)
+        k_model = pytorch_to_keras(model, input_var, (inp, inp, inp,), verbose=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)

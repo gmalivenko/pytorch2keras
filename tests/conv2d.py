@@ -36,7 +36,7 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        k_model = pytorch_to_keras((inp, inp, inp,), output)
+        k_model = pytorch_to_keras(model, input_var, (inp, inp, inp,), verbose=True)
 
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)

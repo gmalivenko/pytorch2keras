@@ -1,9 +1,9 @@
 # pytorch2keras
-Pytorch to Keras model convertor. Very beta for now.
+Pytorch to Keras model convertor. Still beta for now.
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 is supported. You can follow #6 for the further information about 0.3.
+In that moment the only PyTorch 0.2 and PyTorch 0.4 (in master) is supported.
 
 To use converter properly, please, make changes in your `~/.keras/keras.json`:
 
@@ -18,6 +18,8 @@ Note 1: some layers parameters (like ceiling and etc) isn't supported.
 
 Note 2: recurrent layers isn't supported too.
 
+Note 3: somathing is wrong with biases for the jit/onnx.
+
 ## How to
 
 It's a convertor of pytorch graph to a keras (tensorflow backend) graph.
@@ -31,9 +33,9 @@ class TestConv2d(nn.Module):
     """Module for Conv2d conversion testing
     """
 
-    def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
+    def __init__(self, inp=10, out=16, kernel_size=3):
         super(TestConv2d, self).__init__()
-        self.conv2d = nn.Conv2d(inp, out, stride=(inp % 3 + 1), kernel_size=kernel_size, bias=bias)
+        self.conv2d = nn.Conv2d(inp, out, stride=(inp % 3 + 1), kernel_size=kernel_size, bias=True)
 
     def forward(self, x):
         x = self.conv2d(x)
@@ -49,14 +51,13 @@ The next step - iterate model with some data (for gradients computing):
 ```
 input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
 input_var = Variable(torch.FloatTensor(input_np))
-output = model(input_var)
 ```
 
-We've got some useless output. Now we use this output variable to traverse the graph.
+We're using dummy-variable in order to trace the model.
 
 ```
 from converter import pytorch_to_keras
-k_model = pytorch_to_keras((10, 32, 32,), output)  #we should specify shape of the input tensor
+k_model = pytorch_to_keras(model, input_var, (10, 32, 32,), verbose=True)  #we should specify shape of the input tensor
 ```
 
 That's all! If all is ok, the Keras model was stored to the `k_model` variable.
@@ -67,24 +68,24 @@ Layers:
 
 * Linear
 * Conv2d
-* ConvTranspose2d
+* ConvTranspose2d (only with 0.2)
 * MaxPool2d
 * AvgPool2d
 
 Reshape:
 
-* View
+* View (only with 0.2)
 
 Activations:
 
 * ReLU
-* LeakyReLU
-* PReLU
-* SELU
+* LeakyReLU (only with 0.2)
+* PReLU (only with 0.2)
+* SELU (only with 0.2)
 * Tanh
 * Softmax
-* Softplus
-* Softsign
+* Softplus (only with 0.2)
+* Softsign (only with 0.2)
 * Sigmoid
 
 Element-wise:
@@ -105,7 +106,7 @@ Element-wise:
 * SqueezeNet
 * DenseNet
 * AlexNet
-* Inception (v4 only)
+* Inception (v4 only) (only with 0.2)
 
 ## Usage
 Look at the `tests` directory.
