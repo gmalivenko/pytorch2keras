@@ -3,7 +3,7 @@ Pytorch to Keras model convertor. Still beta for now.
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 and PyTorch 0.4 (in master) is supported.
+In that moment the only PyTorch 0.2 and PyTorch 0.4 (in master) are supported.
 
 To use converter properly, please, make changes in your `~/.keras/keras.json`:
 
@@ -18,7 +18,7 @@ Note 1: some layers parameters (like ceiling and etc) isn't supported.
 
 Note 2: recurrent layers isn't supported too.
 
-Note 3: somathing is wrong with biases for the jit/onnx.
+Note 3: something is wrong with biases for the jit/onnx.
 
 ## How to
 
