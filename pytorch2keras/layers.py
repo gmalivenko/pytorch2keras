@@ -528,6 +528,63 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = tanh(layers[inputs[0]])
 
 
+def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert tanh layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting transpose ...')
+    if params['perm'][0] != 0:
+        # raise AssertionError('Cannot permute batch dimension')
+        print('!!! Cannot permute batch dimension. Result may be wrong !!!')
+        layers[scope_name] = layers[inputs[0]]
+    else:
+        tf_name = w_name + str(random.random())
+        permute = keras.layers.Permute(params['perm'][1:], name=tf_name)
+        layers[scope_name] = permute(layers[inputs[0]])
+
+
+def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert tanh layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting matmul ...')
+
+    tf_name = w_name + str(random.random())
+
+    if len(inputs) == 1:
+        weights_name = '{0}.weight'.format(w_name)
+
+        W = weights[weights_name].numpy().transpose()
+        input_channels, output_channels = W.shape
+
+        keras_weights = [W]
+
+        print(layers[inputs[0]])
+        dense = keras.layers.Dense(
+            output_channels,
+            weights=keras_weights, use_bias=False, name=tf_name
+        )
+        layers[scope_name] = dense(layers[inputs[0]])
+    else:
+        raise AssertionError('Cannot convert matmul layer')
+
+
 AVAILABLE_CONVERTERS = {
     'Conv': convert_conv,
     'ConvTranspose': convert_convtranspose,
@@ -546,4 +603,6 @@ AVAILABLE_CONVERTERS = {
     'Sigmoid': convert_sigmoid,
     'Softmax': convert_softmax,
     'Tanh': convert_tanh,
+    'Transpose': convert_transpose,
+    'MatMul': convert_matmul,
 }

@@ -16,7 +16,7 @@ class TestDense(nn.Module):
 
     def __init__(self, inp=10, out=16, bias=True):
         super(TestDense, self).__init__()
-        self.linear = nn.Linear(inp, out, bias=True)
+        self.linear = nn.Linear(inp, out, bias=False)
 
     def forward(self, x):
         x = self.linear(x)
