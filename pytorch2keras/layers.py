@@ -96,6 +96,65 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
         layers[scope_name] = conv(layers[input_name])
 
 
+def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert transposed convolution layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting transposed convolution ...')
+
+    tf_name = w_name + str(random.random())
+    bias_name = '{0}.bias'.format(w_name)
+    weights_name = '{0}.weight'.format(w_name)
+
+    if len(weights[weights_name].numpy().shape) == 4:
+        W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
+        height, width, n_filters, channels = W.shape
+
+        if bias_name in weights:
+            biases = weights[bias_name].numpy()
+            has_bias = True
+        else:
+            biases = None
+            has_bias = False
+
+        padding_name = tf_name + '_pad'
+        padding_layer = keras.layers.ZeroPadding2D(
+            padding=(params['pads'][0], params['pads'][1]),
+            name=padding_name
+        )
+        layers[padding_name] = padding_layer(layers[inputs[0]])
+        input_name = padding_name
+
+        weights = None
+        if has_bias:
+            weights = [W, biases]
+        else:
+            weights = [W]
+
+        conv = keras.layers.Conv2DTranspose(
+            filters=n_filters,
+            kernel_size=(height, width),
+            strides=(params['strides'][0], params['strides'][1]),
+            padding='valid',
+            weights=weights,
+            use_bias=has_bias,
+            activation=None,
+            dilation_rate=params['dilations'][0],
+            name=tf_name
+        )
+        layers[scope_name] = conv(layers[input_name])
+    else:
+        raise AssertionError('Layer is not supported for now')
+
+
 def convert_flatten(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert reshape(view).
@@ -471,6 +530,7 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights):
 
 AVAILABLE_CONVERTERS = {
     'Conv': convert_conv,
+    'ConvTranspose': convert_convtranspose,
     'Flatten': convert_flatten,
     'Gemm': convert_gemm,
     'MaxPool': convert_maxpool,

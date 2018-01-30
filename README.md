@@ -68,7 +68,7 @@ Layers:
 
 * Linear
 * Conv2d
-* ConvTranspose2d (only with 0.2)
+* ConvTranspose2d
 * MaxPool2d
 * AvgPool2d
 
