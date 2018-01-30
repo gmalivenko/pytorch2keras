@@ -11,7 +11,7 @@ from converter import pytorch_to_keras
 
 
 class TestConv2d(nn.Module):
-    """Module for Dense conversion testing
+    """Module for BatchNorm2d conversion testing
     """
 
     def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
