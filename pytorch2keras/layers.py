@@ -530,7 +530,7 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights):
 
 def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
     """
-    Convert tanh layer.
+    Convert transpose layer.
 
    Args:
         params: dictionary with layer parameters
@@ -549,6 +549,25 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
         tf_name = w_name + str(random.random())
         permute = keras.layers.Permute(params['perm'][1:], name=tf_name)
         layers[scope_name] = permute(layers[inputs[0]])
+
+
+def convert_reshape(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert reshape layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting reshape ...')
+
+    tf_name = w_name + str(random.random())
+    reshape = keras.layers.Reshape(params['shape'], name=tf_name)
+    layers[scope_name] = reshape(layers[inputs[0]])
 
 
 def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
@@ -604,5 +623,6 @@ AVAILABLE_CONVERTERS = {
     'Softmax': convert_softmax,
     'Tanh': convert_tanh,
     'Transpose': convert_transpose,
+    'Reshape': convert_reshape,
     'MatMul': convert_matmul,
 }

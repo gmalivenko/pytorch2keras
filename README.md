@@ -74,7 +74,8 @@ Layers:
 
 Reshape:
 
-* View (only with 0.2)
+* View
+* Reshape (only with 0.4)
 * Transpose (only with 0.4)
 
 Activations:
