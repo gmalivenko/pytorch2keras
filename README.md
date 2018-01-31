@@ -60,7 +60,7 @@ from converter import pytorch_to_keras
 k_model = pytorch_to_keras(model, input_var, (10, 32, 32,), verbose=True)  #we should specify shape of the input tensor
 ```
 
-That's all! If all is ok, the Keras model was stored to the `k_model` variable.
+That's all! If all is ok, the Keras model stores to the `k_model` variable.
 
 ## Supported layers
 

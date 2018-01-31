@@ -229,20 +229,17 @@ def convert_avgpool(params, w_name, scope_name, inputs, layers, weights):
     padding_h, padding_w, _, _ = params['pads']
 
     input_name = inputs[0]
+    padding = 'valid'
     if padding_h > 0 and padding_w > 0:
-        padding_name = tf_name + '_pad'
-        padding_layer = keras.layers.ZeroPadding2D(
-            padding=(padding_h, padding_w),
-            name=padding_name
-        )
-        layers[padding_name] = padding_layer(layers[inputs[0]])
-        input_name = padding_name
+        if padding_h == height // 2 and padding_w == width // 2:
+            padding = 'same'
+        else:
+            raise AssertionError('Custom padding isnt supported')
 
-    # Pooling type
     pooling = keras.layers.AveragePooling2D(
         pool_size=(height, width),
         strides=(stride_height, stride_width),
-        padding='valid',
+        padding=padding,
         name=tf_name
     )
 
