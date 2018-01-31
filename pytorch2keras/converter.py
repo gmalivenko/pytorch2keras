@@ -50,6 +50,12 @@ def _optimize_trace(trace, aten):
     torch._C._jit_pass_lint(trace)
 
 
+def get_node_id(node):
+    import re
+    node_id = re.search(r"[\d]+", node.__str__())[0]
+    return node_id
+
+
 def pytorch_to_keras(
     model, args, input_shape,
     change_ordering=False, training=False, verbose=False
@@ -85,6 +91,9 @@ def pytorch_to_keras(
     _optimize_trace(trace, False)
 
     if verbose:
+        print(trace.graph())
+
+    if verbose:
         print(list(trace.graph().outputs()))
 
     # Get all graph nodes
@@ -115,14 +124,16 @@ def pytorch_to_keras(
         node_input_names = []
         for node_input in node_inputs:
             if node_input.node().scopeName():
-                node_input_names.append(node_input.node().scopeName())
+                node_input_names.append(get_node_id(node_input.node()))
 
         if len(node_input_names) == 0:
             node_input_names.append('input')
 
         node_type = node.kind()
+        # print(dir(node))
+
         node_scope_name = node.scopeName()
-        node_id = re.search(r"[\d]+", node.__str__())[0]
+        node_id = get_node_id(node)
         node_weights_name = '.'.join(
             re.findall(r'\[([\w\d.]+)\]', node_scope_name)
         )
@@ -145,12 +156,12 @@ def pytorch_to_keras(
             print('is_terminal:', node_id in graph_outputs)
         AVAILABLE_CONVERTERS[node_type](
             node_attrs,
-            node_weights_name, node_scope_name,
+            node_weights_name, node_id,
             node_input_names,
             layers, state_dict
         )
         if node_id in graph_outputs:
-            outputs.append(layers[node_scope_name])
+            outputs.append(layers[node_id])
 
     model = keras.models.Model(inputs=layers['input'], outputs=outputs)
 
