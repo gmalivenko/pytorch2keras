@@ -444,6 +444,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting concat ...')
     concat_nodes = [layers[i] for i in inputs]
+    print (concat_nodes)
     tf_name = w_name + str(random.random())
     cat = keras.layers.Concatenate(name=tf_name, axis=params['axis'])
     layers[scope_name] = cat(concat_nodes)
@@ -569,7 +570,7 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights):
 
 def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
     """
-    Convert tanh layer.
+    Convert matmul layer.
 
    Args:
         params: dictionary with layer parameters
@@ -591,7 +592,6 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
 
         keras_weights = [W]
 
-        print(layers[inputs[0]])
         dense = keras.layers.Dense(
             output_channels,
             weights=keras_weights, use_bias=False, name=tf_name
@@ -599,6 +599,57 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
         layers[scope_name] = dense(layers[inputs[0]])
     else:
         raise AssertionError('Cannot convert matmul layer')
+
+
+def convert_gather(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert gather (embedding) layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting embedding ...')
+
+    tf_name = w_name + str(random.random())
+
+    weights_name = '{0}.weight'.format(w_name)
+
+    W = weights[weights_name].numpy()
+    input_channels, output_channels = W.shape
+
+    keras_weights = [W]
+
+    dense = keras.layers.Embedding(
+        input_channels,
+        weights=keras_weights, output_dim=output_channels, name=tf_name
+    )
+    layers[scope_name] = dense(layers[inputs[0]])
+
+
+def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert reduce_sum layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting reduce_sum ...')
+
+    keepdims = params['keepdims'] > 0
+    target_layer = lambda x: keras.backend.sum(x, keepdims=keepdims, axis=params['axes'])
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
 AVAILABLE_CONVERTERS = {
@@ -622,4 +673,6 @@ AVAILABLE_CONVERTERS = {
     'Transpose': convert_transpose,
     'Reshape': convert_reshape,
     'MatMul': convert_matmul,
+    'Gather': convert_gather,
+    'ReduceSum': convert_reduce_sum,
 }
