@@ -14,11 +14,9 @@ To use converter properly, please, make changes in your `~/.keras/keras.json`:
 ...
 ```
 
-Note 1: some layers parameters (like ceiling and etc) isn't supported.
+Note 1: some layers parameters (like ceiling and etc) aren't supported.
 
-Note 2: recurrent layers isn't supported too.
-
-Note 3: something is wrong with biases for the jit/onnx.
+Note 2: recurrent layers aren't supported too.
 
 ## How to
 
@@ -71,6 +69,7 @@ Layers:
 * ConvTranspose2d
 * MaxPool2d
 * AvgPool2d
+* Embedding
 
 Reshape:
 
@@ -95,6 +94,10 @@ Element-wise:
 * Addition
 * Multiplication
 * Subtraction
+
+Misc:
+
+* reduce sum ( .sum() method)
 
 ## Unsupported parameters
 
