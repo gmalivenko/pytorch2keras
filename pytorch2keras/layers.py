@@ -1,4 +1,5 @@
 import keras.layers
+import numpy as np
 import random
 
 
@@ -652,6 +653,25 @@ def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
+def convert_constant(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert constant layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting constant ...')
+
+    target_layer = lambda x: keras.backend.constant(np.float32(params['value']))
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 AVAILABLE_CONVERTERS = {
     'Conv': convert_conv,
     'ConvTranspose': convert_convtranspose,
@@ -675,4 +695,5 @@ AVAILABLE_CONVERTERS = {
     'MatMul': convert_matmul,
     'Gather': convert_gather,
     'ReduceSum': convert_reduce_sum,
+    'Constant': convert_constant,
 }
