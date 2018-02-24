@@ -178,6 +178,15 @@ def pytorch_to_keras(
                             layer['config']['batch_input_shape'][1]
                         ], -1
                     ))
+
+            if layer['config'] and 'target_shape' in layer['config']:
+                layer['config']['target_shape'] = \
+                    tuple(np.reshape(
+                        [
+                            *layer['config']['target_shape'][1:][:],
+                            layer['config']['target_shape'][0]
+                        ], -1
+                    ))
             if layer['config'] and 'data_format' in layer['config']:
                 layer['config']['data_format'] = 'channels_last'
             if layer['config'] and 'axis' in layer['config']:
