@@ -565,7 +565,7 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights):
     print('Converting reshape ...')
 
     tf_name = w_name + str(random.random())
-    reshape = keras.layers.Reshape(params['shape'], name=tf_name)
+    reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
     layers[scope_name] = reshape(layers[inputs[0]])
 
 
