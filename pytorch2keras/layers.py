@@ -598,6 +598,19 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
             weights=keras_weights, use_bias=False, name=tf_name
         )
         layers[scope_name] = dense(layers[inputs[0]])
+    elif len(inputs) == 2:
+        weights_name = '{0}.weight'.format(w_name)
+
+        W = weights[weights_name].numpy().transpose()
+        input_channels, output_channels = W.shape
+
+        keras_weights = [W]
+
+        dense = keras.layers.Dense(
+            output_channels,
+            weights=keras_weights, use_bias=False, name=tf_name
+        )
+        layers[scope_name] = dense(layers[inputs[0]])
     else:
         raise AssertionError('Cannot convert matmul layer')
 
