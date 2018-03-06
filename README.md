@@ -70,6 +70,7 @@ Layers:
 * MaxPool2d
 * AvgPool2d
 * Embedding
+* UpsamplingNearest2d
 
 Reshape:
 
