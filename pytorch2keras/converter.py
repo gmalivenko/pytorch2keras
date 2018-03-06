@@ -82,7 +82,7 @@ def pytorch_to_keras(
     orig_state_dict_keys = _unique_state_dict(model).keys()
 
     with set_training(model, training):
-        trace, torch_out = torch.jit.trace(model, args)
+        trace, torch_out = torch.jit.get_trace_graph(model, args)
 
     if orig_state_dict_keys != _unique_state_dict(model).keys():
         raise RuntimeError("state_dict changed after running the tracer; "

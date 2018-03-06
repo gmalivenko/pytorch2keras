@@ -660,7 +660,8 @@ def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights):
     print('Converting reduce_sum ...')
 
     keepdims = params['keepdims'] > 0
-    target_layer = lambda x: keras.backend.sum(x, keepdims=keepdims, axis=params['axes'])
+    axis = np.array(params['axes'])
+    target_layer = lambda x: keras.backend.sum(x, keepdims=keepdims, axis=axis)
 
     lambda_layer = keras.layers.Lambda(target_layer)
     layers[scope_name] = lambda_layer(layers[inputs[0]])
