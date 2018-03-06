@@ -686,6 +686,32 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
+def convert_upsample(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert upsample_bilinear2d layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting upsample...')
+
+    if params['mode'] != 'nearest':
+        raise AssertionError('Cannot convert non-nearest upsampling')
+
+    tf_name = w_name + str(random.random())
+
+    scale = (params['height_scale'], params['width_scale'])
+    upsampling = keras.layers.UpSampling2D(
+        size=scale, name=tf_name
+    )
+    layers[scope_name] = upsampling(layers[inputs[0]])
+
+
 AVAILABLE_CONVERTERS = {
     'Conv': convert_conv,
     'ConvTranspose': convert_convtranspose,
@@ -710,4 +736,5 @@ AVAILABLE_CONVERTERS = {
     'Gather': convert_gather,
     'ReduceSum': convert_reduce_sum,
     'Constant': convert_constant,
+    'Upsample': convert_upsample,
 }
