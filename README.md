@@ -3,9 +3,9 @@ Pytorch to Keras model convertor. Still beta for now.
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 and PyTorch 0.4 (in master) are supported.
+In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (in master) are supported.
 
-To use converter properly, please, make changes in your `~/.keras/keras.json`:
+To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
 ```
 ...
@@ -14,21 +14,19 @@ To use converter properly, please, make changes in your `~/.keras/keras.json`:
 ...
 ```
 
-Note 1: some layers parameters (like ceiling and etc) aren't supported.
+## How to build the latest PyTorch
 
-Note 2: recurrent layers aren't supported too.
+Please, follow [this guide](https://github.com/pytorch/pytorch#from-source) to compile the latest version.
 
-## How to
+## How to use
 
-It's a convertor of pytorch graph to a keras (tensorflow backend) graph.
+It's a convertor of pytorch graph to a Keras (Tensorflow backend) graph.
 
-Firstly, we need to load (or create) pytorch model.
-
-For example:
+Firstly, we need to load (or create) pytorch model:
 
 ```
 class TestConv2d(nn.Module):
-    """Module for Conv2d conversion testing
+    """Module for Conv2d convertion testing
     """
 
     def __init__(self, inp=10, out=16, kernel_size=3):
@@ -40,11 +38,12 @@ class TestConv2d(nn.Module):
         return x
 
 model = TestConv2d()
+
 # load weights here
 # model.load_state_dict(torch.load(path_to_weights.pth))
 ```
 
-The next step - iterate model with some data (for gradients computing):
+The next step - create a dummy variable with correct shapes:
 
 ```
 input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
@@ -55,10 +54,11 @@ We're using dummy-variable in order to trace the model.
 
 ```
 from converter import pytorch_to_keras
-k_model = pytorch_to_keras(model, input_var, (10, 32, 32,), verbose=True)  #we should specify shape of the input tensor
+# we should specify shape of the input tensor
+k_model = pytorch_to_keras(model, input_var, (10, 32, 32,), verbose=True)  
 ```
 
-That's all! If all is ok, the Keras model stores to the `k_model` variable.
+That's all! If all is ok, the Keras model is stores into the `k_model` variable.
 
 ## Supported layers
 
@@ -109,7 +109,7 @@ Misc:
 
 * ResNet18
 * ResNet50
-* SqueezeNet
+* SqueezeNet (with ceil_mode=False)
 * DenseNet
 * AlexNet
 * Inception (v4 only) (only with 0.2)
