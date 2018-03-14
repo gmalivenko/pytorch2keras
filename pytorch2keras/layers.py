@@ -365,7 +365,9 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = bn(layers[inputs[0]])
 
 
-def convert_elementwise_add(params, w_name, scope_name, inputs, layers, weights):
+def convert_elementwise_add(
+    params, w_name, scope_name, inputs, layers, weights
+):
     """
     Convert elementwise addition.
 
@@ -387,7 +389,9 @@ def convert_elementwise_add(params, w_name, scope_name, inputs, layers, weights)
     layers[scope_name] = add([model0, model1])
 
 
-def convert_elementwise_mul(params, w_name, scope_name, inputs, layers, weights):
+def convert_elementwise_mul(
+    params, w_name, scope_name, inputs, layers, weights
+):
     """
     Convert elementwise multiplication.
 
@@ -409,7 +413,9 @@ def convert_elementwise_mul(params, w_name, scope_name, inputs, layers, weights)
     layers[scope_name] = mul([model0, model1])
 
 
-def convert_elementwise_sub(params, w_name, scope_name, inputs, layers, weights):
+def convert_elementwise_sub(
+    params, w_name, scope_name, inputs, layers, weights
+):
     """
     Convert elementwise subtraction.
 
@@ -445,7 +451,6 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting concat ...')
     concat_nodes = [layers[i] for i in inputs]
-    print (concat_nodes)
     tf_name = w_name + str(random.random())
     cat = keras.layers.Concatenate(name=tf_name, axis=params['axis'])
     layers[scope_name] = cat(concat_nodes)
