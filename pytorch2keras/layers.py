@@ -475,6 +475,26 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = relu(layers[inputs[0]])
 
 
+def convert_lrelu(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert leaky relu layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting lrelu ...')
+
+    tf_name = w_name + str(random.random())
+    leakyrelu = \
+        keras.layers.LeakyReLU(alpha=params['alpha'], name=tf_name)
+    layers[scope_name] = leakyrelu(layers[inputs[0]])
+
+
 def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert sigmoid layer.
@@ -732,6 +752,7 @@ AVAILABLE_CONVERTERS = {
     'Sub': convert_elementwise_sub,
     'Concat': convert_concat,
     'Relu': convert_relu,
+    'LeakyRelu': convert_lrelu,
     'Sigmoid': convert_sigmoid,
     'Softmax': convert_softmax,
     'Tanh': convert_tanh,

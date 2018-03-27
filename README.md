@@ -81,7 +81,7 @@ Reshape:
 Activations:
 
 * ReLU
-* LeakyReLU (only with 0.2)
+* LeakyReLU
 * PReLU (only with 0.2)
 * SELU (only with 0.2)
 * Tanh
