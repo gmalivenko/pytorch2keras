@@ -7,6 +7,12 @@ In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (in master) are
 
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
+The code in PyTorch master is changing very quickly, so, the latest supported version is:
+`5463a4a3199b89aa1e944068694fa0f50635807b`. To use specific commit, please run 
+`git checkout 5463a4a3199b89aa1e944068694fa0f50635807b` in the PyTorch project directory
+ before building PyTorch from source.
+
+
 ```
 ...
 "backend": "tensorflow",
