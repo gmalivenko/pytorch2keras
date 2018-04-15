@@ -32,22 +32,23 @@ def set_training(model, mode):
             model.train(old_mode)
 
 
-def _optimize_trace(trace, aten):
+def _optimize_graph(graph, aten):
     # run dce first to eliminate dead parts of the graph that might have been
     # left behind by things like symbolic_override
-    torch._C._jit_pass_dce(trace)
-    torch._C._jit_pass_lint(trace)
+    torch._C._jit_pass_dce(graph)
+    torch._C._jit_pass_lint(graph)
 
-    torch._C._jit_pass_peephole(trace)
-    torch._C._jit_pass_lint(trace)
-    torch._C._jit_pass_onnx(trace, aten)
-    torch._C._jit_pass_lint(trace)
-    torch._C._jit_pass_onnx_peephole(trace)
-    torch._C._jit_pass_lint(trace)
-    torch._C._jit_pass_dce(trace)
-    torch._C._jit_pass_lint(trace)
-    torch._C._jit_pass_canonicalize(trace)
-    torch._C._jit_pass_lint(trace)
+    torch._C._jit_pass_peephole(graph)
+    torch._C._jit_pass_lint(graph)
+    graph = torch._C._jit_pass_onnx(graph, aten)
+    torch._C._jit_pass_lint(graph)
+    torch._C._jit_pass_onnx_peephole(graph)
+    torch._C._jit_pass_lint(graph)
+    torch._C._jit_pass_dce(graph)
+    torch._C._jit_pass_lint(graph)
+    graph = torch._C._jit_pass_canonicalize(graph)
+    torch._C._jit_pass_lint(graph)
+    return graph
 
 
 def get_node_id(node):
@@ -88,7 +89,8 @@ def pytorch_to_keras(
         raise RuntimeError("state_dict changed after running the tracer; "
                            "something weird is happening in your model!")
 
-    _optimize_trace(trace, False)
+    # _optimize_trace(trace, False)
+    trace.set_graph(_optimize_graph(trace.graph(), False))
 
     if verbose:
         print(trace.graph())
