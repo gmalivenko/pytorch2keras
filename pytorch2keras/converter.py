@@ -53,8 +53,8 @@ def _optimize_graph(graph, aten):
 
 def get_node_id(node):
     import re
-    node_id = re.search(r"[\d]+", node.__str__())[0]
-    return node_id
+    node_id = re.search(r"[\d]+", node.__str__())
+    return node_id.group(0)
 
 
 def pytorch_to_keras(
@@ -103,11 +103,12 @@ def pytorch_to_keras(
 
     # Collect graph outputs
     graph_outputs = [n.uniqueName() for n in trace.graph().outputs()]
+    print('Graph outputs:', graph_outputs)
 
     # Collect model state dict
     state_dict = _unique_state_dict(model)
     if verbose:
-        print(list(state_dict))
+        print('State dict:', list(state_dict))
 
     import re
     import keras
@@ -173,21 +174,20 @@ def pytorch_to_keras(
         for layer in conf['layers']:
             if layer['config'] and 'batch_input_shape' in layer['config']:
                 layer['config']['batch_input_shape'] = \
-                    tuple(np.reshape(
+                    tuple(np.reshape(np.array(
                         [
-                            None,
-                            *layer['config']['batch_input_shape'][2:][:],
-                            layer['config']['batch_input_shape'][1]
-                        ], -1
+                            [None] +
+                            list(layer['config']['batch_input_shape'][2:][:]) +
+                            [layer['config']['batch_input_shape'][1]]
+                        ]), -1
                     ))
-
             if layer['config'] and 'target_shape' in layer['config']:
                 layer['config']['target_shape'] = \
-                    tuple(np.reshape(
+                    tuple(np.reshape(np.array(
                         [
-                            *layer['config']['target_shape'][1:][:],
+                            list(layer['config']['target_shape'][1:][:]),
                             layer['config']['target_shape'][0]
-                        ], -1
+                        ]), -1
                     ))
             if layer['config'] and 'data_format' in layer['config']:
                 layer['config']['data_format'] = 'channels_last'
