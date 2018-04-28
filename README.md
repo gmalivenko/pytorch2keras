@@ -3,14 +3,9 @@ Pytorch to Keras model convertor. Still beta for now.
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (in master) are supported.
+In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (latest stable) are supported.
 
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
-
-The code in PyTorch master is changing very quickly, so, the latest supported version is:
-`5463a4a3199b89aa1e944068694fa0f50635807b`. To use specific commit, please run 
-`git checkout 5463a4a3199b89aa1e944068694fa0f50635807b` in the PyTorch project directory
- before building PyTorch from source.
 
 
 ```
@@ -118,7 +113,7 @@ Misc:
 * SqueezeNet (with ceil_mode=False)
 * DenseNet
 * AlexNet
-* Inception (v4 only) (only with 0.2)
+* Inception (v4 only)
 
 ## Usage
 Look at the `tests` directory.
