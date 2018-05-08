@@ -552,6 +552,26 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = tanh(layers[inputs[0]])
 
 
+def convert_selu(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert selu layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting selu ...')
+
+    tf_name = w_name + str(random.random())
+    selu = keras.layers.Activation('selu', name=tf_name)
+    layers[scope_name] = selu(layers[inputs[0]])
+
+
+
 def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert transpose layer.
@@ -737,6 +757,38 @@ def convert_upsample(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = upsampling(layers[inputs[0]])
 
 
+def convert_padding(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert padding layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting padding...')
+
+    if params['mode'] != 'constant':
+        raise AssertionError('Cannot convert non-constant padding')
+
+    if params['value'] != 0.0:
+        raise AssertionError('Cannot convert non-zero padding')
+
+    tf_name = w_name + str(random.random())
+
+    # Magic ordering
+    padding_name = tf_name + '_pad'
+    padding_layer = keras.layers.ZeroPadding2D(
+        padding=((params['pads'][2], params['pads'][6]), (params['pads'][3], params['pads'][7])),
+        name=tf_name
+    )
+
+    layers[scope_name] = padding_layer(layers[inputs[0]])
+
+
 AVAILABLE_CONVERTERS = {
     'onnx::Conv': convert_conv,
     'onnx::ConvTranspose': convert_convtranspose,
@@ -756,6 +808,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Sigmoid': convert_sigmoid,
     'onnx::Softmax': convert_softmax,
     'onnx::Tanh': convert_tanh,
+    'onnx::Selu': convert_selu,
     'onnx::Transpose': convert_transpose,
     'onnx::Reshape': convert_reshape,
     'onnx::MatMul': convert_matmul,
@@ -763,4 +816,5 @@ AVAILABLE_CONVERTERS = {
     'onnx::ReduceSum': convert_reduce_sum,
     'onnx::Constant': convert_constant,
     'onnx::Upsample': convert_upsample,
+    'onnx::Pad': convert_padding,
 }
