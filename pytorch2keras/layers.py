@@ -20,6 +20,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
     tf_name = w_name + str(random.random())
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
+    input_name = layers[inputs[0]
 
     if len(weights[weights_name].numpy().shape) == 4:
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
@@ -32,13 +33,14 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
             biases = None
             has_bias = False
 
-        padding_name = tf_name + '_pad'
-        padding_layer = keras.layers.ZeroPadding2D(
-            padding=(params['pads'][0], params['pads'][1]),
-            name=padding_name
-        )
-        layers[padding_name] = padding_layer(layers[inputs[0]])
-        input_name = padding_name
+        if params['pads'][0] > 0 or params['pads'][1] > 0:
+            padding_name = tf_name + '_pad'
+            padding_layer = keras.layers.ZeroPadding2D(
+                padding=(params['pads'][0], params['pads'][1]),
+                name=padding_name
+            )
+            layers[padding_name] = padding_layer(layers[inputs[0]])
+            input_name = padding_name
 
         weights = None
         if has_bias:
@@ -126,13 +128,10 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights):
             biases = None
             has_bias = False
 
-        padding_name = tf_name + '_pad'
-        padding_layer = keras.layers.ZeroPadding2D(
-            padding=(params['pads'][0], params['pads'][1]),
-            name=padding_name
-        )
-        layers[padding_name] = padding_layer(layers[inputs[0]])
-        input_name = padding_name
+        assert(params['pads'][0] == 0)
+        assert(params['pads'][1] == 0)
+
+        input_name = inputs[0]
 
         weights = None
         if has_bias:
@@ -537,7 +536,7 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert tanh layer.
 
-   Args:
+    Args:
         params: dictionary with layer parameters
         w_name: name prefix in state_dict
         scope_name: pytorch scope name
