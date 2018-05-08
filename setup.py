@@ -1,5 +1,12 @@
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+from setuptools.command.develop import develop
+from setuptools.command.install import install
+
+
+try: # for pip >= 10
+    from pip._internal.req import parse_requirements
+except ImportError: # for pip <= 9.0.3
+    from pip.req import parse_requirements
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
 install_reqs = parse_requirements('requirements.txt', session='null')
