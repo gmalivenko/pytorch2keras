@@ -20,7 +20,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
     tf_name = w_name + str(random.random())
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
-    input_name = layers[inputs[0]
+    input_name = layers[inputs[0]]
 
     if len(weights[weights_name].numpy().shape) == 4:
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
