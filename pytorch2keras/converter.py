@@ -9,7 +9,7 @@ import torch.serialization
 import contextlib
 from torch.jit import _unique_state_dict
 
-from layers import AVAILABLE_CONVERTERS
+from .layers import AVAILABLE_CONVERTERS
 
 
 @contextlib.contextmanager
@@ -169,41 +169,50 @@ def pytorch_to_keras(
     model = keras.models.Model(inputs=layers['input'], outputs=outputs)
 
     if change_ordering:
+        # Change from 'NCW' to 'NWC' ordering customary in tf
         import numpy as np
-        conf = model.get_config()
-        for layer in conf['layers']:
-            if layer['config'] and 'batch_input_shape' in layer['config']:
-                layer['config']['batch_input_shape'] = \
-                    tuple(np.reshape(np.array(
-                        [
-                            [None] +
-                            list(layer['config']['batch_input_shape'][2:][:]) +
-                            [layer['config']['batch_input_shape'][1]]
-                        ]), -1
-                    ))
-            if layer['config'] and 'target_shape' in layer['config']:
-                layer['config']['target_shape'] = \
-                    tuple(np.reshape(np.array(
-                        [
-                            list(layer['config']['target_shape'][1:][:]),
-                            layer['config']['target_shape'][0]
-                        ]), -1
-                    ))
-            if layer['config'] and 'data_format' in layer['config']:
-                layer['config']['data_format'] = 'channels_last'
-            if layer['config'] and 'axis' in layer['config']:
-                layer['config']['axis'] = 3
+        config = model.get_config()
+        for lc in (layer['config'] for layer in config['layers']):
+
+            if 'batch_input_shape' in lc:
+                lc['batch_input_shape'] = tuple(np.reshape(np.array([
+                    [None] + list(lc['batch_input_shape'][2:][:]) +
+                    [lc['batch_input_shape'][1]]
+                ]), -1))
+
+            if 'target_shape' in lc:
+                lc['target_shape'] = tuple(np.reshape(np.array([
+                    list(lc['target_shape'][1:][:]),
+                    lc['target_shape'][0]
+                ]), -1))
+
+            if 'data_format' in lc:
+                lc['data_format'] = 'channels_last'
+
+            if 'axis' in lc:
+                lc['axis'] = 2
 
         K.set_image_data_format('channels_last')
-        model_tf_ordering = keras.models.Model.from_config(conf)
 
+        # # For theano:
         # from keras.utils.layer_utils import convert_all_kernels_in_model
         # convert_all_kernels_in_model(model)
 
-        for dst_layer, src_layer in zip(
-            model_tf_ordering.layers, model.layers
-        ):
-            dst_layer.set_weights(src_layer.get_weights())
+        # Set the weights into the model with new ordering
+        src_weights = [layer.get_weights() for layer in model.layers]
+        if K.backend() == 'tensorflow':
+            # Tensorflow needs a new graph for the converted model
+            # to retain the same scopes for the operators.
+            import tensorflow as tf
+            with tf.Graph().as_default():
+                K.set_session(tf.Session())
+                model_tf_ordering = keras.models.Model.from_config(config)
+                for dst, src in zip(model_tf_ordering.layers, src_weights):
+                    dst.set_weights(src)
+        else:
+            model_tf_ordering = keras.models.Model.from_config(config)
+            for dst, src in zip(model_tf_ordering.layers, src_weights):
+                dst.set_weights(src)
 
         model = model_tf_ordering
 
