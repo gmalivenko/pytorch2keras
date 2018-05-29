@@ -190,7 +190,7 @@ def pytorch_to_keras(
                 lc['data_format'] = 'channels_last'
 
             if 'axis' in lc:
-                lc['axis'] = 2
+                lc['axis'] = len(lc['batch_input_shape'])-1
 
         K.set_image_data_format('channels_last')
 
