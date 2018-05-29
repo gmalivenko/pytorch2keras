@@ -204,11 +204,11 @@ def pytorch_to_keras(
             # Tensorflow needs a new graph for the converted model
             # to retain the same scopes for the operators.
             import tensorflow as tf
-            with tf.Graph().as_default():
-                K.set_session(tf.Session())
-                model_tf_ordering = keras.models.Model.from_config(config)
-                for dst, src in zip(model_tf_ordering.layers, src_weights):
-                    dst.set_weights(src)
+            tf.reset_default_graph()
+            K.set_session(tf.Session())
+            model_tf_ordering = keras.models.Model.from_config(config)
+            for dst, src in zip(model_tf_ordering.layers, src_weights):
+                dst.set_weights(src)
         else:
             model_tf_ordering = keras.models.Model.from_config(config)
             for dst, src in zip(model_tf_ordering.layers, src_weights):
