@@ -17,7 +17,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting convolution ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Conv_'+w_name
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
     input_name = inputs[0]
@@ -71,13 +71,14 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
             biases = None
             has_bias = False
 
-        padding_name = tf_name + '_pad'
-        padding_layer = keras.layers.ZeroPadding1D(
-            padding=params['pads'][0],
-            name=padding_name
-        )
-        layers[padding_name] = padding_layer(layers[inputs[0]])
-        input_name = padding_name
+        if params['pads'][0] != 0:
+            padding_name = tf_name + '/_pad'
+            padding_layer = keras.layers.ZeroPadding1D(
+                padding=params['pads'][0],
+                name=padding_name
+            )
+            layers[padding_name] = padding_layer(layers[inputs[0]])
+            input_name = padding_name
 
         weights = None
         if has_bias:
@@ -90,6 +91,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
             kernel_size=width,
             strides=params['strides'][0],
             padding='valid',
+            data_format=params.get('data_format', 'channels_first'),
             weights=weights,
             use_bias=has_bias,
             activation=None,
@@ -113,7 +115,7 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting transposed convolution ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Convtrans_'+w_name
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
 
@@ -168,9 +170,9 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights):
         weights: pytorch state_dict
     """
     print('Conerting reshape ...')
-    tf_name = w_name + str(random.random())
-    reshape = keras.layers.Flatten(name=tf_name)
-    layers[scope_name] = reshape(layers[inputs[0]])
+    tf_name = 'Flatten_'+w_name
+    flatten = keras.layers.Flatten(name=tf_name)
+    layers[scope_name] = flatten(layers[inputs[0]])
 
 
 def convert_gemm(params, w_name, scope_name, inputs, layers, weights):
@@ -187,7 +189,7 @@ def convert_gemm(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting Linear ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Gemm_'+w_name
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
 
@@ -223,7 +225,7 @@ def convert_avgpool(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting pooling ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Avgpool_'+w_name
     height, width = params['kernel_shape']
     stride_height, stride_width = params['strides']
     padding_h, padding_w, _, _ = params['pads']
@@ -261,7 +263,7 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights):
 
     print('Converting pooling ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Maxpool_'+w_name
     if 'kernel_shape' in params:
         height, width = params['kernel_shape']
     else:
@@ -310,7 +312,7 @@ def convert_dropout(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting dropout ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Dropout_'+w_name
     dropout = keras.layers.Dropout(rate=params['ratio'], name=tf_name)
     layers[scope_name] = dropout(layers[inputs[0]])
 
@@ -329,7 +331,7 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting batchnorm ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Batchnorm_'+w_name
 
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
@@ -382,7 +384,7 @@ def convert_elementwise_add(
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Eladd_'+w_name
 
     add = keras.layers.Add(name=tf_name)
     layers[scope_name] = add([model0, model1])
@@ -406,7 +408,7 @@ def convert_elementwise_mul(
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Elmul_'+w_name
 
     mul = keras.layers.Multiply(name=tf_name)
     layers[scope_name] = mul([model0, model1])
@@ -430,7 +432,7 @@ def convert_elementwise_sub(
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Elsub_'+w_name
 
     sub = keras.layers.Subtract(name=tf_name)
     layers[scope_name] = sub([model0, model1])
@@ -450,7 +452,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting concat ...')
     concat_nodes = [layers[i] for i in inputs]
-    tf_name = w_name + str(random.random())
+    tf_name = 'Concat_'+w_name
     cat = keras.layers.Concatenate(name=tf_name, axis=params['axis'])
     layers[scope_name] = cat(concat_nodes)
 
@@ -469,7 +471,7 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting relu ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Relu_'+w_name
     relu = keras.layers.Activation('relu', name=tf_name)
     layers[scope_name] = relu(layers[inputs[0]])
 
@@ -488,7 +490,7 @@ def convert_lrelu(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting lrelu ...')
 
-    tf_name = w_name + str(random.random())
+    tf_name = 'Lrelu_'+w_name
     leakyrelu = \
         keras.layers.LeakyReLU(alpha=params['alpha'], name=tf_name)
     layers[scope_name] = leakyrelu(layers[inputs[0]])
@@ -589,7 +591,7 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
         print('!!! Cannot permute batch dimension. Result may be wrong !!!')
         layers[scope_name] = layers[inputs[0]]
     else:
-        tf_name = w_name + str(random.random())
+        tf_name = 'Transpose_'+w_name
         permute = keras.layers.Permute(params['perm'][1:], name=tf_name)
         layers[scope_name] = permute(layers[inputs[0]])
 
