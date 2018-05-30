@@ -1,4 +1,7 @@
 # pytorch2keras
+
+[![Build Status](https://travis-ci.com/nerox8664/pytorch2keras.svg?branch=master)](https://travis-ci.com/nerox8664/pytorch2keras)
+
 Pytorch to Keras model convertor. Still beta for now.
 
 ## Important notice
