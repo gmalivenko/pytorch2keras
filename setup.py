@@ -17,9 +17,9 @@ reqs = [str(ir.req) for ir in install_reqs]
 
 
 setup(name='pytorch2keras',
-      version='0.1',
-      description='The model convertor',
-      url='',
+      version='0.1.1',
+      description='The deep learning models convertor',
+      url='https://github.com/nerox8664/pytorch2keras',
       author='Grigory Malivenko',
       author_email='nerox8664@gmail.com',
       license='MIT',

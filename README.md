@@ -4,6 +4,12 @@
 
 Pytorch to Keras model convertor. Still beta for now.
 
+## Installation
+
+```
+pip install pytorch2keras 
+```
+
 ## Important notice
 
 In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (latest stable) are supported.
