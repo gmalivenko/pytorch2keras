@@ -1,13 +1,8 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
 
 
 class TestSub(nn.Module):
@@ -23,6 +18,7 @@ class TestSub(nn.Module):
         x1 = self.conv2d_1(x)
         x2 = self.conv2d_2(x)
         return x1 - x2
+
 
 if __name__ == '__main__':
     max_error = 0

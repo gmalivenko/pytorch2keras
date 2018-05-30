@@ -1,22 +1,17 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
 
 
 class TestConvTranspose2d(nn.Module):
     """Module for ConvTranspose2d conversion testing
     """
 
-    def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
+    def __init__(self, inp=10, out=16, kernel_size=3, padding=1, bias=True):
         super(TestConvTranspose2d, self).__init__()
-        self.conv2d = nn.ConvTranspose2d(inp, out, kernel_size=kernel_size, bias=bias)
+        self.conv2d = nn.ConvTranspose2d(inp, out, kernel_size=kernel_size, bias=bias, stride=padding)
 
     def forward(self, x):
         x = self.conv2d(x)
@@ -30,7 +25,7 @@ if __name__ == '__main__':
         inp = np.random.randint(kernel_size + 1, 100)
         out = np.random.randint(1, 100)
 
-        model = TestConvTranspose2d(inp, out, kernel_size, inp % 2)
+        model = TestConvTranspose2d(inp, out, kernel_size, 2, inp % 3)
 
         input_np = np.random.uniform(0, 1, (1, inp, inp, inp))
         input_var = Variable(torch.FloatTensor(input_np))

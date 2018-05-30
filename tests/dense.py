@@ -1,13 +1,8 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
 
 
 class TestDense(nn.Module):

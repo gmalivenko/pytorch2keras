@@ -5,13 +5,13 @@ from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
 
 
-class TestEmbedding(nn.Module):
+class TestSum(nn.Module):
     def __init__(self, input_size):
-        super(TestEmbedding, self).__init__()
+        super(TestSum, self).__init__()
         self.embedd = nn.Embedding(input_size, 100)
 
     def forward(self, input):
-        return self.embedd(input)
+        return self.embedd(input).sum(dim=0)
 
 
 if __name__ == '__main__':
@@ -20,7 +20,7 @@ if __name__ == '__main__':
         input_np = np.random.randint(0, 10, (1, 1, 4))
         input = Variable(torch.LongTensor(input_np))
 
-        simple_net = TestEmbedding(1000)
+        simple_net = TestSum(1000)
         output = simple_net(input)
 
         k_model = pytorch_to_keras(simple_net, input, (1, 4), verbose=True)

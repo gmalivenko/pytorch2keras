@@ -436,6 +436,29 @@ def convert_elementwise_sub(
     layers[scope_name] = sub([model0, model1])
 
 
+def convert_sum(
+    params, w_name, scope_name, inputs, layers, weights
+):
+    """
+    Convert sum.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting Sum ...')
+
+    def target_layer(x):
+        return keras.backend.sum(x)
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 def convert_concat(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert concatenation.
@@ -469,6 +492,7 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting relu ...')
 
+    print(w_name, scope_name)
     tf_name = w_name + str(random.random())
     relu = keras.layers.Activation('relu', name=tf_name)
     layers[scope_name] = relu(layers[inputs[0]])
@@ -568,7 +592,6 @@ def convert_selu(params, w_name, scope_name, inputs, layers, weights):
     tf_name = w_name + str(random.random())
     selu = keras.layers.Activation('selu', name=tf_name)
     layers[scope_name] = selu(layers[inputs[0]])
-
 
 
 def convert_transpose(params, w_name, scope_name, inputs, layers, weights):
@@ -705,7 +728,9 @@ def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights):
 
     keepdims = params['keepdims'] > 0
     axis = np.array(params['axes'])
-    target_layer = lambda x: keras.backend.sum(x, keepdims=keepdims, axis=axis)
+
+    def target_layer(x, keepdims=keepdims, axis=axis):
+        return keras.backend.sum(x, keepdims=keepdims, axis=axis)
 
     lambda_layer = keras.layers.Lambda(target_layer)
     layers[scope_name] = lambda_layer(layers[inputs[0]])
@@ -725,7 +750,9 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting constant ...')
 
-    target_layer = lambda x: keras.backend.constant(np.float32(params['value']))
+    def target_layer(params=params):
+        return keras.backend.constant(np.float32(params['value']))
+
     lambda_layer = keras.layers.Lambda(target_layer)
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
@@ -782,7 +809,7 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights):
     padding_name = tf_name + '_pad'
     padding_layer = keras.layers.ZeroPadding2D(
         padding=((params['pads'][2], params['pads'][6]), (params['pads'][3], params['pads'][7])),
-        name=tf_name
+        name=padding_name
     )
 
     layers[scope_name] = padding_layer(layers[inputs[0]])
@@ -801,6 +828,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Add': convert_elementwise_add,
     'onnx::Mul': convert_elementwise_mul,
     'onnx::Sub': convert_elementwise_sub,
+    'onnx::Sum': convert_sum,
     'onnx::Concat': convert_concat,
     'onnx::Relu': convert_relu,
     'onnx::LeakyRelu': convert_lrelu,

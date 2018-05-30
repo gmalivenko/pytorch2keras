@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import keras  # work around segfault
 import sys
 import numpy as np
@@ -8,8 +10,7 @@ import torchvision
 import torch.nn as nn
 from torch.autograd import Variable
 
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
 
 # The code from torchvision
 import math

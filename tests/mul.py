@@ -1,13 +1,8 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
 
 
 class TestMul(nn.Module):
@@ -22,7 +17,7 @@ class TestMul(nn.Module):
     def forward(self, x):
         x1 = self.conv2d_1(x)
         x2 = self.conv2d_2(x)
-        return x1 * x2
+        return (x1 * x2).sum()
 
 
 if __name__ == '__main__':

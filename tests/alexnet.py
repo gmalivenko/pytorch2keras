@@ -1,14 +1,8 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
-import torchvision
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
-
+from pytorch2keras.converter import pytorch_to_keras
+import torchvision
 
 if __name__ == '__main__':
     max_error = 0

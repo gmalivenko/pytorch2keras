@@ -1,20 +1,14 @@
-import keras  # work around segfault
-import sys
 import numpy as np
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
-
-sys.path.append('../pytorch2keras')
-from converter import pytorch_to_keras
+from pytorch2keras.converter import pytorch_to_keras
+import torch.nn.functional as F
 
 
 class TestUpsampleNearest2d(nn.Module):
     """Module for UpsampleNearest2d conversion testing
     """
-
     def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
         super(TestUpsampleNearest2d, self).__init__()
         self.conv2d = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)

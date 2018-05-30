@@ -9,7 +9,7 @@ import torch.serialization
 import contextlib
 from torch.jit import _unique_state_dict
 
-from layers import AVAILABLE_CONVERTERS
+from .layers import AVAILABLE_CONVERTERS
 
 
 @contextlib.contextmanager
