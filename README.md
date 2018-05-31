@@ -79,6 +79,7 @@ Layers:
 * ConvTranspose2d
 * MaxPool2d
 * AvgPool2d
+* Global average pooling (as special case of AdaptiveAvgPool2d)
 * Embedding
 * UpsamplingNearest2d
 
@@ -118,11 +119,13 @@ Misc:
 ## Models converted with pytorch2keras
 
 * ResNet18
+* ResNet34
 * ResNet50
 * SqueezeNet (with ceil_mode=False)
 * DenseNet
 * AlexNet
 * Inception (v4 only)
+* SeNet
 
 ## Usage
 Look at the `tests` directory.

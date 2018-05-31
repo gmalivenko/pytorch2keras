@@ -16,9 +16,15 @@ install_reqs = parse_requirements('requirements.txt', session='null')
 reqs = [str(ir.req) for ir in install_reqs]
 
 
+with open('README.md') as f:
+  long_description = f.read()
+
+
 setup(name='pytorch2keras',
-      version='0.1.1',
+      version='0.1.3',
       description='The deep learning models convertor',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       url='https://github.com/nerox8664/pytorch2keras',
       author='Grigory Malivenko',
       author_email='nerox8664@gmail.com',
