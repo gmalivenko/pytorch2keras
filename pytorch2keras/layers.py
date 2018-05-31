@@ -630,10 +630,14 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights):
         weights: pytorch state_dict
     """
     print('Converting reshape ...')
-
-    tf_name = w_name + str(random.random())
-    reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
-    layers[scope_name] = reshape(layers[inputs[0]])
+    if len(inputs) > 1:
+        tf_name = w_name + str(random.random())
+        reshape = keras.layers.Reshape(layers[inputs[1]][1:], name=tf_name)
+        layers[scope_name] = reshape(layers[inputs[0]])
+    else:
+        tf_name = w_name + str(random.random())
+        reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
+        layers[scope_name] = reshape(layers[inputs[0]])
 
 
 def convert_matmul(params, w_name, scope_name, inputs, layers, weights):
@@ -750,11 +754,12 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting constant ...')
 
-    def target_layer(params=params):
-        return keras.backend.constant(np.float32(params['value']))
+    # def target_layer(x, params=params):
+    #     return keras.backend.constant(np.float32(params['value']))
 
-    lambda_layer = keras.layers.Lambda(target_layer)
-    layers[scope_name] = lambda_layer(layers[inputs[0]])
+    # lambda_layer = keras.layers.Lambda(target_layer)
+    # layers[scope_name] = lambda_layer(layers[inputs[0]])
+    layers[scope_name] = np.float32(params['value'])
 
 
 def convert_upsample(params, w_name, scope_name, inputs, layers, weights):
@@ -815,6 +820,32 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = padding_layer(layers[inputs[0]])
 
 
+
+def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert adaptive_avg_pool2d layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting adaptive_avg_pool2d...')
+
+    tf_name = w_name + str(random.random())
+    global_pool = keras.layers.GlobalAveragePooling2D()
+    layers_global_pool = global_pool(layers[inputs[0]])
+
+    def target_layer(x):
+        return keras.backend.expand_dims(x)
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers_global_pool)
+
+
 AVAILABLE_CONVERTERS = {
     'onnx::Conv': convert_conv,
     'onnx::ConvTranspose': convert_convtranspose,
@@ -844,4 +875,5 @@ AVAILABLE_CONVERTERS = {
     'onnx::Constant': convert_constant,
     'onnx::Upsample': convert_upsample,
     'onnx::Pad': convert_padding,
+    'aten::adaptive_avg_pool2d': convert_adaptive_avg_pool2d,
 }
