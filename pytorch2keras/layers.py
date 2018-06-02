@@ -2,7 +2,7 @@ import keras.layers
 import numpy as np
 import random
 
-
+cnn_count = 0
 def convert_conv(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert convolution layer.
@@ -15,11 +15,17 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights):
         layers: dictionary with keras tensors
         weights: pytorch state_dict
     """
+    global cnn_count
     print('Converting convolution ...')
 
     tf_name = 'Conv_'+w_name
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
+    if weights_name not in weights:
+        tf_name = 'net.cnn.%i'%cnn_count
+        bias_name = '%s.bias'%tf_name
+        weights_name = '%s.weight'%tf_name
+        cnn_count += 1
     input_name = inputs[0]
 
     if len(weights[weights_name].numpy().shape) == 4:
@@ -312,7 +318,7 @@ def convert_dropout(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting dropout ...')
 
-    tf_name = 'Dropout_'+w_name
+    tf_name = 'Dropout_{}.{}'.format(w_name, scope_name)
     dropout = keras.layers.Dropout(rate=params['ratio'], name=tf_name)
     layers[scope_name] = dropout(layers[inputs[0]])
 
@@ -329,14 +335,21 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights):
         layers: dictionary with keras tensors
         weights: pytorch state_dict
     """
+    global cnn_count
     print('Converting batchnorm ...')
 
     tf_name = 'Batchnorm_'+w_name
-
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
     mean_name = '{0}.running_mean'.format(w_name)
     var_name = '{0}.running_var'.format(w_name)
+    if weights_name not in weights:
+        tf_name = 'net.cnn.%i._batch_norm'%(cnn_count-1)
+        bias_name = '%s.bias'%tf_name
+        weights_name = '%s.weight'%tf_name
+        mean_name = '%s.running_mean'%tf_name
+        var_name = '%s.running_var'%tf_name
+        # cnn_count += 1
 
     if bias_name in weights:
         beta = weights[bias_name].numpy()
@@ -457,6 +470,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights):
     layers[scope_name] = cat(concat_nodes)
 
 
+relu_count = 0
 def convert_relu(params, w_name, scope_name, inputs, layers, weights):
     """
     Convert relu layer.
@@ -469,9 +483,12 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights):
         layers: dictionary with keras tensors
         weights: pytorch state_dict
     """
+    global relu_count
     print('Converting relu ...')
 
-    tf_name = 'Relu_'+w_name
+    tf_name = 'Relu_%s.%i'%(w_name, relu_count)
+    relu_count += 1
+
     relu = keras.layers.Activation('relu', name=tf_name)
     layers[scope_name] = relu(layers[inputs[0]])
 
