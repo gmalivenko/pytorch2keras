@@ -172,13 +172,25 @@ def pytorch_to_keras(
         # Change from 'NCW' to 'NWC' ordering customary in tf
         import numpy as np
         config = model.get_config()
-        for lc in (layer['config'] for layer in config['layers']):
+        output_shape = None
+        for layer_type, lc in ((layer['class_name'], layer['config']) for layer in config['layers']):
 
             if 'batch_input_shape' in lc:
-                lc['batch_input_shape'] = tuple(np.reshape(np.array([
-                    [None] + list(lc['batch_input_shape'][2:][:]) +
-                    [lc['batch_input_shape'][1]]
-                ]), -1))
+                if len(lc['batch_input_shape']) == 3:
+                    N, C, W = lc['batch_input_shape']
+                    lc['batch_input_shape'] = (N, W, C)
+                elif len(lc['batch_input_shape']) == 4:
+                    N, C, H, W = lc['batch_input_shape']
+                    lc['batch_input_shape'] = (N, H, W, C)
+                else:
+                    raise NotImplementedError("len(batch_input_shape) should be either 3 or 4")
+                output_shape = lc['batch_input_shape']
+
+            if layer_type == 'Con1D':
+                (N, W, _), K = output_shape, lc['kernel_size'][0]
+                C = lc['filters']
+                W -= K-1
+                output_shape = (N, W, C)
 
             if 'target_shape' in lc:
                 lc['target_shape'] = tuple(np.reshape(np.array([
@@ -190,7 +202,8 @@ def pytorch_to_keras(
                 lc['data_format'] = 'channels_last'
 
             if 'axis' in lc:
-                lc['axis'] = len(lc['batch_input_shape'])-1
+                lc['axis'] = len(output_shape)-1
+
 
         K.set_image_data_format('channels_last')
 
