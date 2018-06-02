@@ -57,10 +57,8 @@ def get_node_id(node):
     return node_id.group(0)
 
 
-def pytorch_to_keras(
-    model, args, input_shape,
-    change_ordering=False, training=False, verbose=False
-):
+def pytorch_to_keras(model, args, input_shape,
+        change_ordering=False, training=False, verbose=False):
     """
     By given pytorch model convert layers with specified convertors.
 
@@ -68,7 +66,7 @@ def pytorch_to_keras(
         model: pytorch model
         args: pytorch model arguments
         input_shape: keras input shape (using for InputLayer creation)
-        change_ordering: change CHW to HWC
+        change_ordering: change NCHW to NHWC
         training: switch model to training mode
         verbose: verbose output
 
@@ -77,8 +75,7 @@ def pytorch_to_keras(
     """
 
     # PyTorch JIT tracing
-    if isinstance(args, torch.autograd.Variable):
-        args = (args, )
+    args = (args,) if isinstance(args, torch.autograd.Variable) else args
 
     orig_state_dict_keys = _unique_state_dict(model).keys()
 
@@ -93,9 +90,11 @@ def pytorch_to_keras(
     trace.set_graph(_optimize_graph(trace.graph(), False))
 
     if verbose:
+        print("trace.graph()")
         print(trace.graph())
 
     if verbose:
+        print("trace.graph().outputs())")
         print(list(trace.graph().outputs()))
 
     # Get all graph nodes
@@ -133,7 +132,6 @@ def pytorch_to_keras(
             node_input_names.append('input')
 
         node_type = node.kind()
-        # print(dir(node))
 
         node_scope_name = node.scopeName()
         node_id = get_node_id(node)
@@ -156,17 +154,20 @@ def pytorch_to_keras(
             print('outputs:', node_outputs_names)
             print('name in state_dict:', node_weights_name)
             print('attrs:', node_attrs)
+            print('node_id:', node_id)
             print('is_terminal:', node_id in graph_outputs)
         AVAILABLE_CONVERTERS[node_type](
-            node_attrs,
-            node_weights_name, node_id,
-            node_input_names,
-            layers, state_dict
+            params = node_attrs,
+            w_name = node_weights_name,
+            scope_name = node_id,
+            inputs = node_input_names,
+            layers = layers, weights=state_dict
         )
         if node_id in graph_outputs:
             outputs.append(layers[node_id])
 
     model = keras.models.Model(inputs=layers['input'], outputs=outputs)
+    model.summary()
 
     if change_ordering:
         # Change from 'NCW' to 'NWC' ordering customary in tf
