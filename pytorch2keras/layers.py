@@ -318,7 +318,7 @@ def convert_dropout(params, w_name, scope_name, inputs, layers, weights):
     """
     print('Converting dropout ...')
 
-    tf_name = 'Dropout_{}.{}'.format(w_name, scope_name)
+    tf_name = 'Dropout_{}_{}'.format(w_name, scope_name)
     dropout = keras.layers.Dropout(rate=params['ratio'], name=tf_name)
     layers[scope_name] = dropout(layers[inputs[0]])
 
@@ -486,7 +486,7 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights):
     global relu_count
     print('Converting relu ...')
 
-    tf_name = 'Relu_%s.%i'%(w_name, relu_count)
+    tf_name = 'Relu_%s_%i'%(w_name, relu_count)
     relu_count += 1
 
     relu = keras.layers.Activation('relu', name=tf_name)
@@ -547,6 +547,25 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights):
     print('Converting softmax ...')
 
     tf_name = w_name + str(random.random())
+    softmax = keras.layers.Activation('softmax', name=tf_name)
+    layers[scope_name] = softmax(layers[inputs[0]])
+
+
+def convert_logsoftmax(params, w_name, scope_name, inputs, layers, weights):
+    """
+    Convert log-softmax layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+    """
+    print('Converting softmax ...')
+
+    tf_name = 'Softmax_'+w_name
     softmax = keras.layers.Activation('softmax', name=tf_name)
     layers[scope_name] = softmax(layers[inputs[0]])
 
@@ -825,6 +844,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::LeakyRelu': convert_lrelu,
     'onnx::Sigmoid': convert_sigmoid,
     'onnx::Softmax': convert_softmax,
+    'onnx::LogSoftmax': convert_logsoftmax,
     'onnx::Tanh': convert_tanh,
     'onnx::Selu': convert_selu,
     'onnx::Transpose': convert_transpose,
