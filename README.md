@@ -24,6 +24,11 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 ...
 ```
 
+## Tensorflow.js
+
+For the proper convertion to the tensorflow.js format, please use a new flag `short_names=True`.
+
+
 ## How to build the latest PyTorch
 
 Please, follow [this guide](https://github.com/pytorch/pytorch#from-source) to compile the latest version.
