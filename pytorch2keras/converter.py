@@ -81,6 +81,10 @@ def pytorch_to_keras(
     if isinstance(args, torch.autograd.Variable):
         args = (args, )
 
+    # Workaround for previous versions
+    if isinstance(input_shapes, tuple):
+        input_shapes = [input_shapes]
+
     orig_state_dict_keys = _unique_state_dict(model).keys()
 
     with set_training(model, training):

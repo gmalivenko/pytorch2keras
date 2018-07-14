@@ -24,6 +24,9 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 ...
 ```
 
+From the latest releases, multiple inputs is also supported.
+
+
 ## Tensorflow.js
 
 For the proper convertion to the tensorflow.js format, please use a new flag `short_names=True`.
@@ -70,7 +73,7 @@ We're using dummy-variable in order to trace the model.
 ```
 from converter import pytorch_to_keras
 # we should specify shape of the input tensor
-k_model = pytorch_to_keras(model, input_var, (10, 32, 32,), verbose=True)  
+k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
 ```
 
 That's all! If all is ok, the Keras model is stores into the `k_model` variable.
