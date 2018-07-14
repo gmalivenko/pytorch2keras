@@ -58,7 +58,7 @@ def get_node_id(node):
 
 
 def pytorch_to_keras(
-    model, args, input_shape,
+    model, args, input_shapes,
     change_ordering=False, training=False, verbose=False, short_names=False,
 ):
     """
@@ -67,7 +67,7 @@ def pytorch_to_keras(
     Args:
         model: pytorch model
         args: pytorch model arguments
-        input_shape: keras input shape (using for InputLayer creation)
+        input_shapes: keras input shapes (using for each InputLayer)
         change_ordering: change CHW to HWC
         training: switch model to training mode
         verbose: verbose output
@@ -120,7 +120,7 @@ def pytorch_to_keras(
     keras_inputs = []
     for i in range(len(args)):
         layers['input{0}'.format(i)] = keras.layers.InputLayer(
-            input_shape=input_shape[i], name='input{0}'.format(i)
+            input_shape=input_shapes[i], name='input{0}'.format(i)
         ).output
         keras_inputs.append(layers['input{0}'.format(i)])
 
