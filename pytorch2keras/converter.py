@@ -84,7 +84,7 @@ def pytorch_to_keras(
     orig_state_dict_keys = _unique_state_dict(model).keys()
 
     with set_training(model, training):
-        trace, torch_out = torch.jit.get_trace_graph(model, args)
+        trace, torch_out = torch.jit.get_trace_graph(model, tuple(args))
 
     if orig_state_dict_keys != _unique_state_dict(model).keys():
         raise RuntimeError("state_dict changed after running the tracer; "
@@ -117,12 +117,16 @@ def pytorch_to_keras(
     K.set_image_data_format('channels_first')
 
     layers = dict()
-    layers['input'] = keras.layers.InputLayer(
-        input_shape=input_shape, name='input'
-    ).output
+    keras_inputs = []
+    for i in range(len(args)):
+        layers['input{0}'.format(i)] = keras.layers.InputLayer(
+            input_shape=input_shape[i], name='input{0}'.format(i)
+        ).output
+        keras_inputs.append(layers['input{0}'.format(i)])
 
     outputs = []
 
+    input_index = 0
     for node in nodes:
         node_inputs = list(node.inputs())
         node_input_names = []
@@ -131,7 +135,8 @@ def pytorch_to_keras(
                 node_input_names.append(get_node_id(node_input.node()))
 
         if len(node_input_names) == 0:
-            node_input_names.append('input')
+            node_input_names.append('input{0}'.format(input_index))
+            input_index += 1
 
         node_type = node.kind()
         # print(dir(node))
@@ -168,7 +173,7 @@ def pytorch_to_keras(
         if node_id in graph_outputs:
             outputs.append(layers[node_id])
 
-    model = keras.models.Model(inputs=layers['input'], outputs=outputs)
+    model = keras.models.Model(inputs=keras_inputs, outputs=outputs)
 
     if change_ordering:
         import numpy as np
