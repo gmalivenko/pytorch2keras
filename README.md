@@ -84,8 +84,10 @@ Layers:
 
 * Linear
 * Conv2d
+* Conv3d
 * ConvTranspose2d
 * MaxPool2d
+* MaxPool3d
 * AvgPool2d
 * Global average pooling (as special case of AdaptiveAvgPool2d)
 * Embedding
