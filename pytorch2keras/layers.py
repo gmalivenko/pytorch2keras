@@ -28,12 +28,58 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         tf_name = 'C' + random_string(7)
     else:
         tf_name = w_name + str(random.random())
-    
+
     bias_name = '{0}.bias'.format(w_name)
     weights_name = '{0}.weight'.format(w_name)
     input_name = inputs[0]
 
-    if len(weights[weights_name].numpy().shape) == 4:
+    if len(weights[weights_name].numpy().shape) == 5: # 3D conv
+        W = weights[weights_name].numpy().transpose(2, 3, 4, 1, 0)
+        height, width, channels, n_layers, n_filters = W.shape
+        print(W.shape)
+
+        if bias_name in weights:
+            biases = weights[bias_name].numpy()
+            has_bias = True
+        else:
+            biases = None
+            has_bias = False
+
+        if params['pads'][0] > 0 or params['pads'][1] > 0:
+            padding_name = tf_name + '_pad'
+            padding_layer = keras.layers.ZeroPadding3D(
+                padding=(params['pads'][0],
+                         params['pads'][1],
+                         params['pads'][2]),
+                name=padding_name
+            )
+            layers[padding_name] = padding_layer(layers[input_name])
+            input_name = padding_name
+
+        weights = None
+        if has_bias:
+            weights = [W, biases]
+        else:
+            weights = [W]
+
+        print(len(weights), len(weights[0]), len(weights[0][0]),
+              len(weights[0][0][0]), len(weights[0][0][0][0]),
+              len(weights[0][0][0][0][0]))
+        conv = keras.layers.Conv3D(
+            filters=n_filters,
+            kernel_size=(channels, height, width),
+            strides=(params['strides'][0],
+                     params['strides'][1],
+                     params['strides'][2]),
+            padding='valid',
+            weights=weights,
+            use_bias=has_bias,
+            activation=None,
+            dilation_rate=params['dilations'][0],
+            name=tf_name
+        )
+        layers[scope_name] = conv(layers[input_name])
+    elif len(weights[weights_name].numpy().shape) == 4: # 2D conv
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
         height, width, channels, n_filters = W.shape
 
@@ -71,7 +117,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
-    else:
+    else: # 1D conv
         W = weights[weights_name].numpy().transpose(2, 1, 0)
         width, channels, n_filters = W.shape
 
@@ -326,6 +372,61 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, short_n
     pooling = keras.layers.MaxPooling2D(
         pool_size=(height, width),
         strides=(stride_height, stride_width),
+        padding='valid',
+        name=tf_name
+    )
+
+    layers[scope_name] = pooling(layers[input_name])
+
+
+def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, short_names):
+    """
+    Convert 3d Max pooling.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        short_names: use short names for keras layers
+    """
+
+    print('Converting pooling ...')
+
+    if short_names:
+        tf_name = 'P' + random_string(7)
+    else:
+        tf_name = w_name + str(random.random())
+
+    if 'kernel_shape' in params:
+        height, width, depth = params['kernel_shape']
+    else:
+        height, width, depth = params['kernel_size']
+
+    if 'strides' in params:
+        stride_height, stride_width, stride_depth = params['strides']
+    else:
+        stride_height, stride_width, stride_depth = params['stride']
+    if 'pads' in params:
+        padding_h, padding_w, padding_d, _, _ = params['pads']
+    else:
+        padding_h, padding_w, padding_d = params['padding']
+    input_name = inputs[0]
+    if padding_h > 0 and padding_w > 0 and padding_d > 0:
+        padding_name = tf_name + '_pad'
+        padding_layer = keras.layers.ZeroPadding3D(
+            padding=(padding_h, padding_w, padding_d),
+            name=padding_name
+        )
+        layers[padding_name] = padding_layer(layers[inputs[0]])
+        input_name = padding_name
+
+    # Pooling type
+    pooling = keras.layers.MaxPooling3D(
+        pool_size=(height, width, depth),
+        strides=(stride_height, stride_width, stride_depth),
         padding='valid',
         name=tf_name
     )
@@ -979,6 +1080,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Gemm': convert_gemm,
     'onnx::MaxPool': convert_maxpool,
     'max_pool2d': convert_maxpool,
+    'aten::max_pool3d': convert_maxpool3,
     'onnx::AveragePool': convert_avgpool,
     'onnx::Dropout': convert_dropout,
     'onnx::BatchNormalization': convert_batchnorm,
