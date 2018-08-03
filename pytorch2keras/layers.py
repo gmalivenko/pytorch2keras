@@ -232,14 +232,19 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_n
         short_names: use short names for keras layers
     """
     print('Conerting reshape ...')
+
     if short_names:
         tf_name = 'R' + random_string(7)
     else:
         tf_name = w_name + str(random.random())
 
     # TODO: check if the input is already flattened
-    reshape = keras.layers.Flatten(name=tf_name)
-    layers[scope_name] = reshape(layers[inputs[0]])
+    # Ad-hoc to avoid it:
+    if len(list(layers[inputs[0]].shape)) == 2:
+        layers[scope_name] = layers[inputs[0]]
+    else:
+        reshape = keras.layers.Flatten(name=tf_name)
+        layers[scope_name] = reshape(layers[inputs[0]])
 
 
 def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_names):

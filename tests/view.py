@@ -15,7 +15,7 @@ class TestView(nn.Module):
 
     def forward(self, x):
         x = self.conv2d(x)
-        x = x.view([x.size(0), -1, 2, 1, 1, 1, 1, 1])
+        x = x.view([x.size(0), -1, 2, 1, 1, 1, 1, 1]).view(x.size(0), -1).view(x.size(0), -1)
         x = torch.nn.Tanh()(x)
         return x
 
