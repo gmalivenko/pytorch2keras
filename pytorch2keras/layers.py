@@ -61,7 +61,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             layers[padding_name] = padding_layer(layers[input_name])
             input_name = padding_name
 
-        weights = None
         if has_bias:
             weights = [W, biases]
         else:
@@ -84,7 +83,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
-    elif len(weights[weights_name].numpy().shape) == 4: # 2D conv
+    elif len(weights[weights_name].numpy().shape) == 4:  # 2D conv
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
         height, width, channels, n_filters = W.shape
 
@@ -104,7 +103,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             layers[padding_name] = padding_layer(layers[input_name])
             input_name = padding_name
 
-        weights = None
         if has_bias:
             weights = [W, biases]
         else:
@@ -122,7 +120,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
-    else: # 1D conv
+    else:  # 1D conv
         W = weights[weights_name].numpy().transpose(2, 1, 0)
         width, channels, n_filters = W.shape
 
@@ -141,7 +139,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         layers[padding_name] = padding_layer(layers[inputs[0]])
         input_name = padding_name
 
-        weights = None
         if has_bias:
             weights = [W, biases]
         else:
@@ -200,7 +197,6 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
 
         input_name = inputs[0]
 
-        weights = None
         if has_bias:
             weights = [W, biases]
         else:
@@ -835,7 +831,6 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_n
         short_names: use short names for keras layers
     """
     print('Converting reshape ...')
-
     if short_names:
         tf_name = 'RESH' + random_string(4)
     else:
