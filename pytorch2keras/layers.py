@@ -5,7 +5,12 @@ import string
 
 
 def random_string(length):
-    return ''.join(random.choice(string.ascii_letters) for m in range(length))
+    """
+    Generate a random string for the layer name.
+    :param length: a length of required random string
+    :return: generated random string
+    """
+    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
 
 def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_names):
