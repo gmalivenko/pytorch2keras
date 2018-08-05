@@ -267,7 +267,7 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_n
     else:
         tf_name = w_name + str(random.random())
 
-    reshape = keras.layers.Reshape([-1], name=tf_name)
+    reshape = keras.layers.Flatten(name=tf_name)
     layers[scope_name] = reshape(layers[inputs[0]])
 
 
