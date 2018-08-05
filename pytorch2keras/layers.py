@@ -2,6 +2,7 @@ import keras.layers
 import numpy as np
 import random
 import string
+import tensorflow as tf
 
 
 def random_string(length):
@@ -87,39 +88,67 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
         height, width, channels, n_filters = W.shape
 
-        if bias_name in weights:
-            biases = weights[bias_name].numpy()
-            has_bias = True
-        else:
-            biases = None
-            has_bias = False
+        if params['group'] == n_filters:
+            print('Perform depthwise convolution')
 
-        if params['pads'][0] > 0 or params['pads'][1] > 0:
-            padding_name = tf_name + '_pad'
-            padding_layer = keras.layers.ZeroPadding2D(
-                padding=(params['pads'][0], params['pads'][1]),
-                name=padding_name
+            if params['pads'][0] > 0 or params['pads'][1] > 0:
+                padding_name = tf_name + '_pad'
+                padding_layer = keras.layers.ZeroPadding2D(
+                    padding=(params['pads'][0], params['pads'][1]),
+                    name=padding_name
+                )
+                layers[padding_name] = padding_layer(layers[input_name])
+                input_name = padding_name
+
+            def target_layer(x):
+                x = tf.transpose(x, [0, 2, 3, 1])
+
+                # tensorflow.python.framework.errors_impl.UnimplementedError:
+                # Depthwise convolution on CPU is only supported for NHWC format
+                layer = tf.nn.depthwise_conv2d(x, W.transpose(0, 1, 3, 2),
+                                               strides=(1, params['strides'][0], params['strides'][1], 1),
+                                               padding='VALID', rate=[1, 1])
+                layer = tf.transpose(layer, [0, 3, 1, 2])
+                return layer
+
+            lambda_layer = keras.layers.Lambda(target_layer)
+            layers[scope_name] = lambda_layer(layers[input_name])
+
+        else:
+
+            if bias_name in weights:
+                biases = weights[bias_name].numpy()
+                has_bias = True
+            else:
+                biases = None
+                has_bias = False
+
+            if params['pads'][0] > 0 or params['pads'][1] > 0:
+                padding_name = tf_name + '_pad'
+                padding_layer = keras.layers.ZeroPadding2D(
+                    padding=(params['pads'][0], params['pads'][1]),
+                    name=padding_name
+                )
+                layers[padding_name] = padding_layer(layers[input_name])
+                input_name = padding_name
+
+            if has_bias:
+                weights = [W, biases]
+            else:
+                weights = [W]
+
+            conv = keras.layers.Conv2D(
+                filters=n_filters,
+                kernel_size=(height, width),
+                strides=(params['strides'][0], params['strides'][1]),
+                padding='valid',
+                weights=weights,
+                use_bias=has_bias,
+                activation=None,
+                dilation_rate=params['dilations'][0],
+                name=tf_name
             )
-            layers[padding_name] = padding_layer(layers[input_name])
-            input_name = padding_name
-
-        if has_bias:
-            weights = [W, biases]
-        else:
-            weights = [W]
-
-        conv = keras.layers.Conv2D(
-            filters=n_filters,
-            kernel_size=(height, width),
-            strides=(params['strides'][0], params['strides'][1]),
-            padding='valid',
-            weights=weights,
-            use_bias=has_bias,
-            activation=None,
-            dilation_rate=params['dilations'][0],
-            name=tf_name
-        )
-        layers[scope_name] = conv(layers[input_name])
+            layers[scope_name] = conv(layers[input_name])
     else:  # 1D conv
         W = weights[weights_name].numpy().transpose(2, 1, 0)
         width, channels, n_filters = W.shape
@@ -231,20 +260,15 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_n
         weights: pytorch state_dict
         short_names: use short names for keras layers
     """
-    print('Conerting reshape ...')
+    print('Converting flatten ...')
 
     if short_names:
         tf_name = 'R' + random_string(7)
     else:
         tf_name = w_name + str(random.random())
 
-    # TODO: check if the input is already flattened
-    # Ad-hoc to avoid it:
-    if len(list(layers[inputs[0]].shape)) == 2:
-        layers[scope_name] = layers[inputs[0]]
-    else:
-        reshape = keras.layers.Flatten(name=tf_name)
-        layers[scope_name] = reshape(layers[inputs[0]])
+    reshape = keras.layers.Reshape([-1], name=tf_name)
+    layers[scope_name] = reshape(layers[inputs[0]])
 
 
 def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_names):
@@ -282,7 +306,7 @@ def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_name
 
     dense = keras.layers.Dense(
         output_channels,
-        weights=keras_weights, use_bias=has_bias, name=tf_name
+        weights=keras_weights, use_bias=has_bias, name=tf_name, bias_initializer='zeros', kernel_initializer='zeros',
     )
 
     layers[scope_name] = dense(layers[inputs[0]])
@@ -771,6 +795,28 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights, short_name
     layers[scope_name] = tanh(layers[inputs[0]])
 
 
+def convert_hardtanh(params, w_name, scope_name, inputs, layers, weights, short_names):
+    """
+    Convert hardtanh layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        short_names: use short names for keras layers
+    """
+    print('Converting hardtanh (clip) ...')
+
+    def target_layer(x, max_val=float(params['max_val']), min_val=float(params['min_val'])):
+        return tf.minimum(max_val, tf.maximum(min_val, x))
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 def convert_selu(params, w_name, scope_name, inputs, layers, weights, short_names):
     """
     Convert selu layer.
@@ -812,7 +858,10 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, short
     if params['perm'][0] != 0:
         # raise AssertionError('Cannot permute batch dimension')
         print('!!! Cannot permute batch dimension. Result may be wrong !!!')
-        layers[scope_name] = layers[inputs[0]]
+        try:
+            layers[scope_name] = layers[inputs[0]]
+        except:
+            pass
     else:
         if short_names:
             tf_name = 'PERM' + random_string(4)
@@ -841,7 +890,11 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_n
     else:
         tf_name = w_name + str(random.random())
 
+    print(layers[inputs[1]])
     if len(inputs) > 1:
+        if layers[inputs[1]][0] == -1:
+            print('Cannot deduct batch size! It will be omitted, but result may be wrong.')
+
         reshape = keras.layers.Reshape(layers[inputs[1]][1:], name=tf_name)
         layers[scope_name] = reshape(layers[inputs[0]])
     else:
@@ -879,7 +932,7 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights, short_na
 
         dense = keras.layers.Dense(
             output_channels,
-            weights=keras_weights, use_bias=False, name=tf_name
+            weights=keras_weights, use_bias=False, name=tf_name, bias_initializer='zeros', kernel_initializer='zeros',
         )
         layers[scope_name] = dense(layers[inputs[0]])
     elif len(inputs) == 2:
@@ -892,7 +945,7 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights, short_na
 
         dense = keras.layers.Dense(
             output_channels,
-            weights=keras_weights, use_bias=False, name=tf_name
+            weights=keras_weights, use_bias=False, name=tf_name, bias_initializer='zeros', kernel_initializer='zeros',
         )
         layers[scope_name] = dense(layers[inputs[0]])
     else:
@@ -1047,7 +1100,6 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = padding_layer(layers[inputs[0]])
 
 
-
 def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weights, short_names):
     """
     Convert adaptive_avg_pool2d layer.
@@ -1099,6 +1151,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Sigmoid': convert_sigmoid,
     'onnx::Softmax': convert_softmax,
     'onnx::Tanh': convert_tanh,
+    'aten::hardtanh': convert_hardtanh,
     'onnx::Selu': convert_selu,
     'onnx::Transpose': convert_transpose,
     'onnx::Reshape': convert_reshape,

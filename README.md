@@ -84,6 +84,7 @@ Layers:
 
 * Linear
 * Conv2d
+* DepthwiseConv2d (with limited parameters)
 * Conv3d
 * ConvTranspose2d
 * MaxPool2d
@@ -96,8 +97,8 @@ Layers:
 Reshape:
 
 * View
-* Reshape (only with 0.4)
-* Transpose (only with 0.4)
+* Reshape
+* Transpose
 
 Activations:
 
@@ -106,6 +107,7 @@ Activations:
 * PReLU (only with 0.2)
 * SELU (only with 0.2)
 * Tanh
+* HardTanh (clamp)
 * Softmax
 * Softplus (only with 0.2)
 * Softsign (only with 0.2)
@@ -134,8 +136,9 @@ Misc:
 * SqueezeNet (with ceil_mode=False)
 * DenseNet
 * AlexNet
-* Inception (v4 only)
+* Inception
 * SeNet
+* Mobilenet v2
 
 ## Usage
 Look at the `tests` directory.
