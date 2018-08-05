@@ -81,6 +81,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             use_bias=has_bias,
             activation=None,
             dilation_rate=params['dilations'][0],
+            bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
@@ -108,6 +109,33 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
                 layer = tf.nn.depthwise_conv2d(x, W.transpose(0, 1, 3, 2),
                                                strides=(1, params['strides'][0], params['strides'][1], 1),
                                                padding='VALID', rate=[1, 1])
+                layer = tf.transpose(layer, [0, 3, 1, 2])
+                return layer
+
+            lambda_layer = keras.layers.Lambda(target_layer)
+            layers[scope_name] = lambda_layer(layers[input_name])
+        elif params['group'] != 1:
+            # Example from https://kratzert.github.io/2017/02/24/finetuning-alexnet-with-tensorflow.html
+            # # Split input and weights and convolve them separately
+            # input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
+            # weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=weights)
+            # output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
+
+            # # Concat the convolved output together again
+            # conv = tf.concat(axis=3, values=output_groups)
+            def target_layer(x, groups=params['group'], stride_y=params['strides'][0], stride_x=params['strides'][1]):
+                x = tf.transpose(x, [0, 2, 3, 1])
+
+                convolve = lambda i, k: tf.nn.conv2d(i, k,
+                                                     strides=[1, stride_y, stride_x, 1],
+                                                     padding='VALID')
+
+                input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
+                weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=W.transpose(0, 1, 2, 3))
+                output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
+
+                layer = tf.concat(axis=3, values=output_groups)
+
                 layer = tf.transpose(layer, [0, 3, 1, 2])
                 return layer
 
@@ -146,6 +174,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
                 use_bias=has_bias,
                 activation=None,
                 dilation_rate=params['dilations'][0],
+                bias_initializer='zeros', kernel_initializer='zeros',
                 name=tf_name
             )
             layers[scope_name] = conv(layers[input_name])
@@ -182,6 +211,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             use_bias=has_bias,
             activation=None,
             dilation_rate=params['dilations'][0],
+            bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
@@ -240,6 +270,7 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
             use_bias=has_bias,
             activation=None,
             dilation_rate=params['dilations'][0],
+            bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
         layers[scope_name] = conv(layers[input_name])
