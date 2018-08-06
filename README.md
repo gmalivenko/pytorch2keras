@@ -126,7 +126,6 @@ Misc:
 ## Unsupported parameters
 
 * Pooling: count_include_pad, dilation, ceil_mode
-* Convolution: group
 
 ## Models converted with pytorch2keras
 
