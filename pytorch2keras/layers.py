@@ -1166,6 +1166,66 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
     layers[scope_name] = lambda_layer(layers_global_pool)
 
 
+def convert_slice(params, w_name, scope_name, inputs, layers, weights, short_names):
+    """
+    Convert slice operation.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        short_names: use short names for keras layers
+    """
+    print('Converting slice ...')
+
+    if len(params['axes']) > 1:
+        raise AssertionError('Cannot convert slice by multiple dimensions')
+
+    if params['axes'][0] not in [0, 1, 2, 3]:
+        raise AssertionError('Slice by dimension more than 3 or less than 0 is not supported')
+
+    def target_layer(x, axis=int(params['axes'][0]), start=int(params['starts'][0]), end=int(params['ends'][0])):
+        if axis == 0:
+            return x[start:end]
+        elif axis == 1:
+            return x[:, start:end]
+        elif axis == 2:
+            return x[:, :, start:end]
+        elif axis == 3:
+            return x[:, :, :, start:end]
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
+def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, short_names):
+    """
+    Convert squeeze operation.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        short_names: use short names for keras layers
+    """
+    print('Converting squeeze ...')
+
+    if len(params['axes']) > 1:
+        raise AssertionError('Cannot convert squeeze by multiple dimensions')
+
+    def target_layer(x, axis=int(params['axes'][0])):
+        return tf.squeeze(x, axis=axis)
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 AVAILABLE_CONVERTERS = {
     'onnx::Conv': convert_conv,
     'onnx::ConvTranspose': convert_convtranspose,
@@ -1198,4 +1258,6 @@ AVAILABLE_CONVERTERS = {
     'onnx::Upsample': convert_upsample,
     'onnx::Pad': convert_padding,
     'aten::adaptive_avg_pool2d': convert_adaptive_avg_pool2d,
+    'onnx::Slice': convert_slice,
+    'onnx::Squeeze': convert_squeeze,
 }
