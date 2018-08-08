@@ -1,2 +1,5 @@
 keras
+tensorflow
 numpy
+torch==0.4
+torchvision

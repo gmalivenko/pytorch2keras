@@ -12,7 +12,7 @@ pip install pytorch2keras
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4 (latest stable) are supported.
+In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4.0 (latest stable) are supported.
 
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
@@ -24,7 +24,7 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 ...
 ```
 
-From the latest releases, multiple inputs is also supported.
+The latest version of PyTorch (0.4.1) isn't supported yet.
 
 
 ## Tensorflow.js
@@ -83,7 +83,7 @@ That's all! If all is ok, the Keras model is stores into the `k_model` variable.
 Layers:
 
 * Linear
-* Conv2d
+* Conv2d (also with groups)
 * DepthwiseConv2d (with limited parameters)
 * Conv3d
 * ConvTranspose2d
