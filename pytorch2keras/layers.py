@@ -1059,15 +1059,15 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, short_
     """
     print('Converting constant ...')
 
-    params_list = params['value'].numpy().tolist()
+    # params_list = params['value'].numpy().tolist()
 
-    def target_layer(x):
-        import keras.backend as K
-        return K.constant(params_list)
+    # def target_layer(x):
+    #     import keras.backend as K
+    #     return K.constant(params_list)
 
-    lambda_layer = keras.layers.Lambda(target_layer)
-    layers[scope_name] = lambda_layer(layers['input0']) # Temporary fix for nonexistent input name created by converter.py
-    # layers[scope_name] = params['value']
+    # lambda_layer = keras.layers.Lambda(target_layer)
+    # layers[scope_name] = lambda_layer(layers['input0']) # Temporary fix for nonexistent input name created by converter.py
+    layers[scope_name] = params['value'].tolist()
 
 
 def convert_upsample(params, w_name, scope_name, inputs, layers, weights, short_names):
@@ -1234,6 +1234,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::MaxPool': convert_maxpool,
     'max_pool2d': convert_maxpool,
     'aten::max_pool3d': convert_maxpool3,
+    'aten::max_pool2d': convert_maxpool,
     'onnx::AveragePool': convert_avgpool,
     'onnx::Dropout': convert_dropout,
     'onnx::BatchNormalization': convert_batchnorm,
