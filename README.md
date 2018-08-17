@@ -129,11 +129,11 @@ Misc:
 
 ## Models converted with pytorch2keras
 
-* ResNet18
-* ResNet34
-* ResNet50
+* ResNet*
+* PreResNet*
 * SqueezeNet (with ceil_mode=False)
-* DenseNet
+* SqueezeNext
+* DenseNet*
 * AlexNet
 * Inception
 * SeNet
