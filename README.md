@@ -27,6 +27,29 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 The latest version of PyTorch (0.4.1) isn't supported yet.
 
 
+## Python 3.7
+
+There are some problem related to a new version:
+
+Q. PyTorch 0.4 hadn't released wheel package for Python 3.7
+
+A. You can build it from source:
+
+```
+git clone https://github.com/pytorch/pytorch
+
+cd pytorch
+
+git checkout v0.4.0
+
+NO_CUDA=1 python setup.py install
+```
+
+Q. Tensorflow isn't available for Python 3.7
+
+A. Yes, we're waiting for it.
+
+
 ## Tensorflow.js
 
 For the proper convertion to the tensorflow.js format, please use a new flag `short_names=True`.
@@ -35,6 +58,11 @@ For the proper convertion to the tensorflow.js format, please use a new flag `sh
 ## How to build the latest PyTorch
 
 Please, follow [this guide](https://github.com/pytorch/pytorch#from-source) to compile the latest version.
+
+Additional information for Arch Linux users:
+
+* the latest gcc8 is incompatible with actual nvcc version
+* the legacy gcc54 can't compile C/C++ modules because of compiler flags
 
 ## How to use
 
