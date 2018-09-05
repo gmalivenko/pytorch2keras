@@ -87,10 +87,13 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         layers[scope_name] = conv(layers[input_name])
     elif len(weights[weights_name].numpy().shape) == 4:  # 2D conv
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
-        height, width, channels, n_filters = W.shape
+        height, width, channels_per_group, out_channels = W.shape
+        n_groups = params['group']
+        in_channels = channels_per_group * n_groups
 
-        if params['group'] == n_filters:
-            print('Perform depthwise convolution')
+        if n_groups == in_channels:
+            print('Perform depthwise convolution: h={} w={} in={} out={}'
+                .format(height, width, in_channels, out_channels))
 
             if params['pads'][0] > 0 or params['pads'][1] > 0:
                 padding_name = tf_name + '_pad'
@@ -100,21 +103,37 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
                 )
                 layers[padding_name] = padding_layer(layers[input_name])
                 input_name = padding_name
+            
+            if bias_name in weights:
+                biases = weights[bias_name].numpy()
+                has_bias = True
+            else:
+                biases = None
+                has_bias = False
 
-            def target_layer(x):
-                x = tf.transpose(x, [0, 2, 3, 1])
+            # We are just doing depthwise conv, so make the pointwise a no-op
+            pointwise_wt = np.expand_dims(np.expand_dims(np.identity(out_channels), 0), 0)
+            W = W.transpose(0, 1, 3, 2)
+            if has_bias:
+                weights = [W, pointwise_wt, biases]
+            else:
+                weights = [W, pointwise_wt]
+            
+            conv = keras.layers.SeparableConv2D(
+                filters=out_channels,
+                depth_multiplier=1,
+                kernel_size=(height, width),
+                strides=(params['strides'][0], params['strides'][1]),
+                padding='valid',
+                weights=weights,
+                use_bias=has_bias,
+                activation=None,
+                bias_initializer='zeros', kernel_initializer='zeros',
+                name=tf_name
+            )
+            layers[scope_name] = conv(layers[input_name])
 
-                # tensorflow.python.framework.errors_impl.UnimplementedError:
-                # Depthwise convolution on CPU is only supported for NHWC format
-                layer = tf.nn.depthwise_conv2d(x, W.transpose(0, 1, 3, 2),
-                                               strides=(1, params['strides'][0], params['strides'][1], 1),
-                                               padding='VALID', rate=[1, 1])
-                layer = tf.transpose(layer, [0, 3, 1, 2])
-                return layer
-
-            lambda_layer = keras.layers.Lambda(target_layer)
-            layers[scope_name] = lambda_layer(layers[input_name])
-        elif params['group'] != 1:
+        elif n_groups != 1:
             # Example from https://kratzert.github.io/2017/02/24/finetuning-alexnet-with-tensorflow.html
             # # Split input and weights and convolve them separately
             # input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
@@ -166,7 +185,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
                 weights = [W]
 
             conv = keras.layers.Conv2D(
-                filters=n_filters,
+                filters=out_channels,
                 kernel_size=(height, width),
                 strides=(params['strides'][0], params['strides'][1]),
                 padding='valid',
