@@ -120,7 +120,15 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             # input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
             # weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=weights)
             # output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
-
+            if params['pads'][0] > 0 or params['pads'][1] > 0:
+                padding_name = tf_name + '_pad'
+                padding_layer = keras.layers.ZeroPadding2D(
+                    padding=(params['pads'][0], params['pads'][1]),
+                    name=padding_name
+                )
+                layers[padding_name] = padding_layer(layers[input_name])
+                input_name = padding_name
+                
             # # Concat the convolved output together again
             # conv = tf.concat(axis=3, values=output_groups)
             def target_layer(x, groups=params['group'], stride_y=params['strides'][0], stride_x=params['strides'][1]):
