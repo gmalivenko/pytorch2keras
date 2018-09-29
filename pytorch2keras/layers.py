@@ -259,9 +259,6 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
             biases = None
             has_bias = False
 
-        assert(params['pads'][0] == 0)
-        assert(params['pads'][1] == 0)
-
         input_name = inputs[0]
 
         if has_bias:
@@ -274,6 +271,7 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
             kernel_size=(height, width),
             strides=(params['strides'][0], params['strides'][1]),
             padding='valid',
+            output_padding=0,
             weights=weights,
             use_bias=has_bias,
             activation=None,
@@ -281,7 +279,18 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
             bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
+        
         layers[scope_name] = conv(layers[input_name])
+
+        pads = params['pads']
+        if pads[0] > 0:
+            assert(len(pads) == 2 or (pads[2] == pads[0] and pads[3] == pads[1]))
+
+            crop = keras.layers.Cropping2D(
+                pads[:2],
+                name=tf_name + '_crop'
+            )
+            layers[scope_name] = crop(layers[scope_name])
     else:
         raise AssertionError('Layer is not supported for now')
 
@@ -704,6 +713,11 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights, short_na
     """
     print('Converting concat ...')
     concat_nodes = [layers[i] for i in inputs]
+
+    if len(concat_nodes) == 1:
+        # no-op
+        layers[scope_name] = concat_nodes[0]
+        return
     
     if short_names:
         tf_name = 'CAT' + random_string(5)
