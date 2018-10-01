@@ -86,6 +86,15 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         )
         layers[scope_name] = conv(layers[input_name])
     elif len(weights[weights_name].numpy().shape) == 4:  # 2D conv
+        if params['pads'][0] > 0 or params['pads'][1] > 0:
+            padding_name = tf_name + '_pad'
+            padding_layer = keras.layers.ZeroPadding2D(
+                padding=(params['pads'][0], params['pads'][1]),
+                name=padding_name
+            )
+            layers[padding_name] = padding_layer(layers[input_name])
+            input_name = padding_name
+
         W = weights[weights_name].numpy().transpose(2, 3, 1, 0)
         height, width, channels_per_group, out_channels = W.shape
         n_groups = params['group']
@@ -94,15 +103,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         if n_groups == in_channels:
             print('Perform depthwise convolution: h={} w={} in={} out={}'
                 .format(height, width, in_channels, out_channels))
-
-            if params['pads'][0] > 0 or params['pads'][1] > 0:
-                padding_name = tf_name + '_pad'
-                padding_layer = keras.layers.ZeroPadding2D(
-                    padding=(params['pads'][0], params['pads'][1]),
-                    name=padding_name
-                )
-                layers[padding_name] = padding_layer(layers[input_name])
-                input_name = padding_name
             
             if bias_name in weights:
                 biases = weights[bias_name].numpy()
@@ -139,14 +139,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             # input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
             # weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=weights)
             # output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
-            if params['pads'][0] > 0 or params['pads'][1] > 0:
-                padding_name = tf_name + '_pad'
-                padding_layer = keras.layers.ZeroPadding2D(
-                    padding=(params['pads'][0], params['pads'][1]),
-                    name=padding_name
-                )
-                layers[padding_name] = padding_layer(layers[input_name])
-                input_name = padding_name
                 
             # # Concat the convolved output together again
             # conv = tf.concat(axis=3, values=output_groups)
@@ -170,22 +162,12 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
             layers[scope_name] = lambda_layer(layers[input_name])
 
         else:
-
             if bias_name in weights:
                 biases = weights[bias_name].numpy()
                 has_bias = True
             else:
                 biases = None
                 has_bias = False
-
-            if params['pads'][0] > 0 or params['pads'][1] > 0:
-                padding_name = tf_name + '_pad'
-                padding_layer = keras.layers.ZeroPadding2D(
-                    padding=(params['pads'][0], params['pads'][1]),
-                    name=padding_name
-                )
-                layers[padding_name] = padding_layer(layers[input_name])
-                input_name = padding_name
 
             if has_bias:
                 weights = [W, biases]
