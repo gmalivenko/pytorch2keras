@@ -42,7 +42,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
     if len(weights[weights_name].numpy().shape) == 5: # 3D conv
         W = weights[weights_name].numpy().transpose(2, 3, 4, 1, 0)
         height, width, channels, n_layers, n_filters = W.shape
-        print(W.shape)
 
         if bias_name in weights:
             biases = weights[bias_name].numpy()
@@ -67,9 +66,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         else:
             weights = [W]
 
-        print(len(weights), len(weights[0]), len(weights[0][0]),
-              len(weights[0][0][0]), len(weights[0][0][0][0]),
-              len(weights[0][0][0][0][0]))
         conv = keras.layers.Conv3D(
             filters=n_filters,
             kernel_size=(channels, height, width),
@@ -433,10 +429,12 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, short_n
         stride_height, stride_width = params['strides']
     else:
         stride_height, stride_width = params['stride']
+
     if 'pads' in params:
         padding_h, padding_w, _, _ = params['pads']
     else:
         padding_h, padding_w = params['padding']
+
     input_name = inputs[0]
     if padding_h > 0 and padding_w > 0:
         padding_name = tf_name + '_pad'
@@ -488,10 +486,12 @@ def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, short_
         stride_height, stride_width, stride_depth = params['strides']
     else:
         stride_height, stride_width, stride_depth = params['stride']
+
     if 'pads' in params:
         padding_h, padding_w, padding_d, _, _ = params['pads']
     else:
         padding_h, padding_w, padding_d = params['padding']
+
     input_name = inputs[0]
     if padding_h > 0 and padding_w > 0 and padding_d > 0:
         padding_name = tf_name + '_pad'
@@ -945,7 +945,6 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_n
     else:
         tf_name = w_name + str(random.random())
 
-    print(layers[inputs[1]])
     if len(inputs) > 1:
         if layers[inputs[1]][0] == -1:
             print('Cannot deduct batch size! It will be omitted, but result may be wrong.')
