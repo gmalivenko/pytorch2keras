@@ -29,22 +29,8 @@ class TestConv2d(nn.Module):
         x = self.conv2d_dw(x)
         return x
 
-class TestConv2dNonDepthwise(nn.Module):
-    def __init__(self, inp=10, stride=1):
-        super(TestConv2dNonDepthwise, self).__init__()
-        self.conv2d_non_dw = nn.Conv2d(
-            in_channels = inp,
-            out_channels = 1,
-            kernel_size = 3,
-            padding = 1,
-            stride = stride,
-            bias = False
-        )
 
-    def forward(self, x):
-        return self.conv2d_non_dw(x)
-
-def check_error(output, k_model, input_np, epsilon=1E-5):
+def check_error(output, k_model, input_np, epsilon=1e-5):
     pytorch_output = output.data.numpy()
     keras_output = k_model.predict(input_np)
 
@@ -53,6 +39,7 @@ def check_error(output, k_model, input_np, epsilon=1E-5):
 
     assert error < epsilon
     return error
+
 
 if __name__ == '__main__':
     max_error = 0
@@ -72,11 +59,5 @@ if __name__ == '__main__':
         error = check_error(output, k_model, input_np)        
         if max_error < error:
             max_error = error
-
-        # This isn't a depthwise convolution, so shouldn't be detected as such
-        non_dw_model = TestConv2dNonDepthwise(inp)
-        output = non_dw_model(input_var)
-        k_model = pytorch_to_keras(non_dw_model, input_var, (inp, inp, inp,), verbose=True)
-        check_error(output, k_model, input_np)
 
     print('Max error: {0}'.format(max_error))
