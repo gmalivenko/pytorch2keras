@@ -11,7 +11,8 @@ def group_conv1x1(in_channels,
     return nn.Conv2d(
         in_channels=in_channels,
         out_channels=out_channels,
-        kernel_size=1,
+        kernel_size=3,
+        padding=1,
         groups=groups,
         bias=False)
 
