@@ -188,6 +188,7 @@ def pytorch_to_keras(
     if change_ordering:
         import numpy as np
         conf = model.get_config()
+
         for layer in conf['layers']:
             if layer['config'] and 'batch_input_shape' in layer['config']:
                 layer['config']['batch_input_shape'] = \
@@ -199,13 +200,15 @@ def pytorch_to_keras(
                         ]), -1
                     ))
             if layer['config'] and 'target_shape' in layer['config']:
-                layer['config']['target_shape'] = \
-                    tuple(np.reshape(np.array(
-                        [
-                            list(layer['config']['target_shape'][1:][:]),
-                            layer['config']['target_shape'][0]
-                        ]), -1
-                    ))
+                if len(list(layer['config']['target_shape'][1:][:])) > 0:
+                    layer['config']['target_shape'] = \
+                        tuple(np.reshape(np.array(
+                            [
+                                list(layer['config']['target_shape'][1:][:]),
+                                layer['config']['target_shape'][0]
+                            ]), -1
+                        ),)
+
             if layer['config'] and 'data_format' in layer['config']:
                 layer['config']['data_format'] = 'channels_last'
             if layer['config'] and 'axis' in layer['config']:
