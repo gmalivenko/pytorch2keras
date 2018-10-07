@@ -612,11 +612,13 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, sh
 
     assert(len(inputs) == 3)
 
-    gamma = layers[inputs[-1]]
-    beta = layers[inputs[-2]]
+    gamma = layers[inputs[-2]]
+    beta = layers[inputs[-1]]
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
-        layer = tf.contrib.layers.instance_norm(x, [gamma, beta], epsilon=epsilon, data_format='NCHW')
+        layer = tf.contrib.layers.instance_norm(x,
+            param_initializers={'beta': tf.constant_initializer(beta), 'gamma': tf.constant_initializer(gamma)},
+            epsilon=epsilon, data_format='NCHW')
         return layer
 
     lambda_layer = keras.layers.Lambda(target_layer)
@@ -1170,25 +1172,37 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
     """
     print('Converting padding...')
 
-    if params['mode'] != 'constant':
-        raise AssertionError('Cannot convert non-constant padding')
+    if params['mode'] == 'constant':
+        # raise AssertionError('Cannot convert non-constant padding')
 
-    if params['value'] != 0.0:
-        raise AssertionError('Cannot convert non-zero padding')
+        if params['value'] != 0.0:
+            raise AssertionError('Cannot convert non-zero padding')
 
-    if short_names:
-        tf_name = 'PADD' + random_string(4)
-    else:
-        tf_name = w_name + str(random.random())
+        if short_names:
+            tf_name = 'PADD' + random_string(4)
+        else:
+            tf_name = w_name + str(random.random())
 
-    # Magic ordering
-    padding_name = tf_name
-    padding_layer = keras.layers.ZeroPadding2D(
-        padding=((params['pads'][2], params['pads'][6]), (params['pads'][3], params['pads'][7])),
-        name=padding_name
-    )
+        # Magic ordering
+        padding_name = tf_name
+        padding_layer = keras.layers.ZeroPadding2D(
+            padding=((params['pads'][2], params['pads'][6]), (params['pads'][3], params['pads'][7])),
+            name=padding_name
+        )
 
-    layers[scope_name] = padding_layer(layers[inputs[0]])
+        layers[scope_name] = padding_layer(layers[inputs[0]])
+    elif params['mode'] == 'reflect':
+
+        def target_layer(x, pads=params['pads']):
+            print(x)
+            # x = tf.transpose(x, [0, 2, 3, 1])
+            layer = tf.pad(x, [[0, 0], [0, 0], [pads[2], pads[6]], [pads[3], pads[7]]], 'REFLECT')
+            # layer = tf.transpose(layer, [0, 3, 1, 2])
+            print(layer)
+            return layer
+
+        lambda_layer = keras.layers.Lambda(target_layer)
+        layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
 def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weights, short_names):
