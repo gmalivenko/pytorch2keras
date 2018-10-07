@@ -140,13 +140,14 @@ def pytorch_to_keras(
                 node_input_names.append(get_node_id(node_input.node()))
 
         if len(node_input_names) == 0:
-            if node_inputs[0] in model_inputs:
-                node_input_names.append(model_inputs[node_inputs[0]])
-            else:
-                input_name = 'input{0}'.format(input_index)
-                node_input_names.append(input_name)
-                input_index += 1
-                model_inputs[node_inputs[0]] = input_name
+            if len(node_inputs) > 0:
+                if node_inputs[0] in model_inputs:
+                    node_input_names.append(model_inputs[node_inputs[0]])
+                else:
+                    input_name = 'input{0}'.format(input_index)
+                    node_input_names.append(input_name)
+                    input_index += 1
+                    model_inputs[node_inputs[0]] = input_name
 
         node_type = node.kind()
         # print(dir(node))
