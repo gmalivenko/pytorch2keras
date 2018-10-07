@@ -618,7 +618,8 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, sh
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
         layer = tf.contrib.layers.instance_norm(x,
             param_initializers={'beta': tf.constant_initializer(beta), 'gamma': tf.constant_initializer(gamma)},
-            epsilon=epsilon, data_format='NCHW')
+            epsilon=epsilon, data_format='NCHW',
+            trainable=False)
         return layer
 
     lambda_layer = keras.layers.Lambda(target_layer)
@@ -1194,11 +1195,9 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
     elif params['mode'] == 'reflect':
 
         def target_layer(x, pads=params['pads']):
-            print(x)
             # x = tf.transpose(x, [0, 2, 3, 1])
             layer = tf.pad(x, [[0, 0], [0, 0], [pads[2], pads[6]], [pads[3], pads[7]]], 'REFLECT')
             # layer = tf.transpose(layer, [0, 3, 1, 2])
-            print(layer)
             return layer
 
         lambda_layer = keras.layers.Lambda(target_layer)

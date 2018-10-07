@@ -121,6 +121,8 @@ Layers:
 * Global average pooling (as special case of AdaptiveAvgPool2d)
 * Embedding
 * UpsamplingNearest2d
+* BatchNorm2d
+* InstanceNorm2d
 
 Reshape:
 
