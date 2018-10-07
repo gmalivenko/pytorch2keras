@@ -590,6 +590,39 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights, short
     layers[scope_name] = bn(layers[inputs[0]])
 
 
+def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, short_names):
+    """
+    Convert instance normalization layer.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        short_names: use short names for keras layers
+    """
+    print('Converting instancenorm ...')
+
+    if short_names:
+        tf_name = 'IN' + random_string(6)
+    else:
+        tf_name = w_name + str(random.random())
+
+    assert(len(inputs) == 3)
+
+    gamma = layers[inputs[-1]]
+    beta = layers[inputs[-2]]
+
+    def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
+        layer = tf.contrib.layers.instance_norm(x, [gamma, beta], epsilon=epsilon, data_format='NCHW')
+        return layer
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 def convert_elementwise_add(
     params, w_name, scope_name, inputs, layers, weights, short_names
 ):
@@ -1260,6 +1293,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::AveragePool': convert_avgpool,
     'onnx::Dropout': convert_dropout,
     'onnx::BatchNormalization': convert_batchnorm,
+    'onnx::InstanceNormalization': convert_instancenorm,
     'onnx::Add': convert_elementwise_add,
     'onnx::Mul': convert_elementwise_mul,
     'onnx::Sub': convert_elementwise_sub,
