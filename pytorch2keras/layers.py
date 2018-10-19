@@ -278,6 +278,10 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
         )
         
         layers[scope_name] = conv(layers[input_name])
+        
+        # Magic ad-hoc.
+        # See the Keras issue: https://github.com/keras-team/keras/issues/6777
+        layers[scope_name].set_shape(layers[scope_name]._keras_shape)
 
         pads = params['pads']
         if pads[0] > 0:
