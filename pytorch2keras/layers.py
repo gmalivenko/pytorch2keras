@@ -14,7 +14,7 @@ def random_string(length):
     return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
 
-def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert convolution layer.
 
@@ -25,13 +25,14 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
-        short_names: use short names
+        names: use short names for keras layers
     """
     print('Converting convolution ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'C' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -222,7 +223,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, short_name
         layers[scope_name] = conv(layers[input_name])
 
 
-def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert transposed convolution layer.
 
@@ -233,12 +234,14 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting transposed convolution ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'C' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -296,7 +299,7 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, s
         raise AssertionError('Layer is not supported for now')
 
 
-def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_flatten(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert reshape(view).
 
@@ -307,12 +310,14 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting flatten ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'R' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -320,7 +325,7 @@ def convert_flatten(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = reshape(layers[inputs[0]])
 
 
-def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_gemm(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert Linear.
 
@@ -331,12 +336,14 @@ def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_name
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting Linear ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'FC' + random_string(6)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -361,7 +368,7 @@ def convert_gemm(params, w_name, scope_name, inputs, layers, weights, short_name
     layers[scope_name] = dense(layers[inputs[0]])
 
 
-def convert_avgpool(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_avgpool(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert Average pooling.
 
@@ -372,12 +379,14 @@ def convert_avgpool(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting pooling ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'P' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -403,7 +412,7 @@ def convert_avgpool(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = pooling(layers[input_name])
 
 
-def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert Max pooling.
 
@@ -414,13 +423,15 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
 
     print('Converting pooling ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'P' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -460,7 +471,7 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = pooling(layers[input_name])
 
 
-def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert 3d Max pooling.
 
@@ -471,13 +482,15 @@ def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, short_
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
 
     print('Converting pooling ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'P' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -517,7 +530,7 @@ def convert_maxpool3(params, w_name, scope_name, inputs, layers, weights, short_
     layers[scope_name] = pooling(layers[input_name])
 
 
-def convert_dropout(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_dropout(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert dropout.
 
@@ -528,12 +541,14 @@ def convert_dropout(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting dropout ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'DO' + random_string(6)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -541,7 +556,7 @@ def convert_dropout(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = dropout(layers[inputs[0]])
 
 
-def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert batch normalization layer.
 
@@ -552,12 +567,14 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights, short
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting batchnorm ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'BN' + random_string(6)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -594,7 +611,7 @@ def convert_batchnorm(params, w_name, scope_name, inputs, layers, weights, short
     layers[scope_name] = bn(layers[inputs[0]])
 
 
-def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert instance normalization layer.
 
@@ -605,12 +622,14 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, sh
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting instancenorm ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'IN' + random_string(6)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -631,7 +650,7 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, sh
 
 
 def convert_elementwise_add(
-    params, w_name, scope_name, inputs, layers, weights, short_names
+    params, w_name, scope_name, inputs, layers, weights, names
 ):
     """
     Convert elementwise addition.
@@ -643,14 +662,16 @@ def convert_elementwise_add(
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting elementwise_add ...')
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    if short_names:
+    if names == 'short':
         tf_name = 'A' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -659,7 +680,7 @@ def convert_elementwise_add(
 
 
 def convert_elementwise_mul(
-    params, w_name, scope_name, inputs, layers, weights, short_names
+    params, w_name, scope_name, inputs, layers, weights, names
 ):
     """
     Convert elementwise multiplication.
@@ -671,14 +692,16 @@ def convert_elementwise_mul(
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting elementwise_mul ...')
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    if short_names:
+    if names == 'short':
         tf_name = 'M' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -687,7 +710,7 @@ def convert_elementwise_mul(
 
 
 def convert_elementwise_sub(
-    params, w_name, scope_name, inputs, layers, weights, short_names
+    params, w_name, scope_name, inputs, layers, weights, names
 ):
     """
     Convert elementwise subtraction.
@@ -699,14 +722,16 @@ def convert_elementwise_sub(
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting elementwise_sub ...')
     model0 = layers[inputs[0]]
     model1 = layers[inputs[1]]
 
-    if short_names:
+    if names == 'short':
         tf_name = 'S' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -715,7 +740,7 @@ def convert_elementwise_sub(
 
 
 def convert_sum(
-    params, w_name, scope_name, inputs, layers, weights, short_names
+    params, w_name, scope_name, inputs, layers, weights, names
 ):
     """
     Convert sum.
@@ -727,7 +752,7 @@ def convert_sum(
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting Sum ...')
 
@@ -739,7 +764,7 @@ def convert_sum(
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
-def convert_concat(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_concat(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert concatenation.
 
@@ -750,7 +775,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights, short_na
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting concat ...')
     concat_nodes = [layers[i] for i in inputs]
@@ -760,8 +785,10 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights, short_na
         layers[scope_name] = concat_nodes[0]
         return
     
-    if short_names:
+    if names == 'short':
         tf_name = 'CAT' + random_string(5)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -769,7 +796,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights, short_na
     layers[scope_name] = cat(concat_nodes)
 
 
-def convert_relu(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_relu(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert relu layer.
 
@@ -780,12 +807,14 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights, short_name
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting relu ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'RELU' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -793,7 +822,7 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights, short_name
     layers[scope_name] = relu(layers[inputs[0]])
 
 
-def convert_lrelu(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_lrelu(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert leaky relu layer.
 
@@ -804,12 +833,14 @@ def convert_lrelu(params, w_name, scope_name, inputs, layers, weights, short_nam
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting lrelu ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'lRELU' + random_string(3)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -818,7 +849,7 @@ def convert_lrelu(params, w_name, scope_name, inputs, layers, weights, short_nam
     layers[scope_name] = leakyrelu(layers[inputs[0]])
 
 
-def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert sigmoid layer.
 
@@ -829,12 +860,14 @@ def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting sigmoid ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'SIGM' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -842,7 +875,7 @@ def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = sigmoid(layers[inputs[0]])
 
 
-def convert_softmax(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_softmax(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert softmax layer.
 
@@ -853,12 +886,14 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting softmax ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'SMAX' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -866,7 +901,7 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights, short_n
     layers[scope_name] = softmax(layers[inputs[0]])
 
 
-def convert_tanh(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_tanh(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert tanh layer.
 
@@ -877,12 +912,14 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights, short_name
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting tanh ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'TANH' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -890,7 +927,7 @@ def convert_tanh(params, w_name, scope_name, inputs, layers, weights, short_name
     layers[scope_name] = tanh(layers[inputs[0]])
 
 
-def convert_hardtanh(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_hardtanh(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert hardtanh layer.
 
@@ -901,7 +938,7 @@ def convert_hardtanh(params, w_name, scope_name, inputs, layers, weights, short_
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting hardtanh (clip) ...')
 
@@ -912,7 +949,7 @@ def convert_hardtanh(params, w_name, scope_name, inputs, layers, weights, short_
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
-def convert_selu(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_selu(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert selu layer.
 
@@ -923,12 +960,14 @@ def convert_selu(params, w_name, scope_name, inputs, layers, weights, short_name
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting selu ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'SELU' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -936,7 +975,7 @@ def convert_selu(params, w_name, scope_name, inputs, layers, weights, short_name
     layers[scope_name] = selu(layers[inputs[0]])
 
 
-def convert_transpose(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_transpose(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert transpose layer.
 
@@ -947,7 +986,7 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, short
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting transpose ...')
     if params['perm'][0] != 0:
@@ -958,7 +997,7 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, short
         except:
             pass
     else:
-        if short_names:
+        if names:
             tf_name = 'PERM' + random_string(4)
         else:
             tf_name = w_name + str(random.random())
@@ -966,7 +1005,7 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, short
         layers[scope_name] = permute(layers[inputs[0]])
 
 
-def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_reshape(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert reshape layer.
 
@@ -977,11 +1016,13 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting reshape ...')
-    if short_names:
+    if names == 'short':
         tf_name = 'RESH' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -996,7 +1037,7 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, short_n
         layers[scope_name] = reshape(layers[inputs[0]])
 
 
-def convert_matmul(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_matmul(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert matmul layer.
 
@@ -1007,12 +1048,14 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights, short_na
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting matmul ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'MMUL' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -1046,7 +1089,7 @@ def convert_matmul(params, w_name, scope_name, inputs, layers, weights, short_na
         raise AssertionError('Cannot convert matmul layer')
 
 
-def convert_gather(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_gather(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert gather (embedding) layer.
 
@@ -1057,12 +1100,14 @@ def convert_gather(params, w_name, scope_name, inputs, layers, weights, short_na
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting embedding ...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'EMBD' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -1080,7 +1125,7 @@ def convert_gather(params, w_name, scope_name, inputs, layers, weights, short_na
     layers[scope_name] = dense(layers[inputs[0]])
 
 
-def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert reduce_sum layer.
 
@@ -1091,7 +1136,7 @@ def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights, shor
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting reduce_sum ...')
 
@@ -1106,7 +1151,7 @@ def convert_reduce_sum(params, w_name, scope_name, inputs, layers, weights, shor
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
-def convert_constant(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_constant(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert constant layer.
 
@@ -1117,7 +1162,7 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, short_
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting constant ...')
 
@@ -1132,7 +1177,7 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, short_
     layers[scope_name] = params['value'].tolist()
 
 
-def convert_upsample(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_upsample(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert upsample_bilinear2d layer.
 
@@ -1143,15 +1188,17 @@ def convert_upsample(params, w_name, scope_name, inputs, layers, weights, short_
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting upsample...')
 
     if params['mode'] != 'nearest':
         raise AssertionError('Cannot convert non-nearest upsampling')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'UPSL' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -1162,7 +1209,7 @@ def convert_upsample(params, w_name, scope_name, inputs, layers, weights, short_
     layers[scope_name] = upsampling(layers[inputs[0]])
 
 
-def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_padding(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert padding layer.
 
@@ -1173,7 +1220,7 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting padding...')
 
@@ -1183,7 +1230,7 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
         if params['value'] != 0.0:
             raise AssertionError('Cannot convert non-zero padding')
 
-        if short_names:
+        if names:
             tf_name = 'PADD' + random_string(4)
         else:
             tf_name = w_name + str(random.random())
@@ -1208,7 +1255,7 @@ def convert_padding(params, w_name, scope_name, inputs, layers, weights, short_n
         layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
-def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert adaptive_avg_pool2d layer.
 
@@ -1219,12 +1266,14 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting adaptive_avg_pool2d...')
 
-    if short_names:
+    if names == 'short':
         tf_name = 'APOL' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
     else:
         tf_name = w_name + str(random.random())
 
@@ -1238,7 +1287,7 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
     layers[scope_name] = lambda_layer(layers_global_pool)
 
 
-def convert_slice(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_slice(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert slice operation.
 
@@ -1249,7 +1298,7 @@ def convert_slice(params, w_name, scope_name, inputs, layers, weights, short_nam
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting slice ...')
 
@@ -1273,7 +1322,7 @@ def convert_slice(params, w_name, scope_name, inputs, layers, weights, short_nam
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
-def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, short_names):
+def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert squeeze operation.
 
@@ -1284,7 +1333,7 @@ def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, short_n
         inputs: pytorch node inputs
         layers: dictionary with keras tensors
         weights: pytorch state_dict
-        short_names: use short names for keras layers
+        names: use short names for keras layers
     """
     print('Converting squeeze ...')
 

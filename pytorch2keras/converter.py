@@ -59,7 +59,7 @@ def get_node_id(node):
 
 def pytorch_to_keras(
     model, args, input_shapes,
-    change_ordering=False, training=False, verbose=False, short_names=False,
+    change_ordering=False, training=False, verbose=False, names=False,
 ):
     """
     By given pytorch model convert layers with specified convertors.
@@ -71,7 +71,7 @@ def pytorch_to_keras(
         change_ordering: change CHW to HWC
         training: switch model to training mode
         verbose: verbose output
-        short_names: use shorn names for keras layers
+        names: use short names, use random-suffix or keep original names for keras layers
 
     Returns:
         model: created keras model.
@@ -179,7 +179,7 @@ def pytorch_to_keras(
             node_weights_name, node_id,
             node_input_names,
             layers, state_dict,
-            short_names
+            names
         )
         if node_id in graph_outputs:
             outputs.append(layers[node_id])
