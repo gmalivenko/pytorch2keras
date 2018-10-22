@@ -54,7 +54,7 @@ A. Yes, we're waiting for it.
 
 ## Tensorflow.js
 
-For the proper convertion to the tensorflow.js format, please use a new flag `short_names=True`.
+For the proper convertion to the tensorflow.js format, please use a new flag `names='short'`.
 
 
 ## How to build the latest PyTorch
