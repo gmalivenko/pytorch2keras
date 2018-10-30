@@ -14,7 +14,7 @@ pip install pytorch2keras
 
 ## Important notice
 
-In that moment the only PyTorch 0.2 (deprecated) and PyTorch 0.4.0 (latest stable) are supported.
+At that moment the only PyTorch 0.4.0 is supported.
 
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
@@ -25,9 +25,6 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 "image_data_format": "channels_first",
 ...
 ```
-
-The latest version of PyTorch (0.4.1) isn't supported yet.
-
 
 ## Python 3.7
 
@@ -68,7 +65,7 @@ Additional information for Arch Linux users:
 
 ## How to use
 
-It's a convertor of pytorch graph to a Keras (Tensorflow backend) graph.
+It's the convertor of pytorch graph to a Keras (Tensorflow backend) graph.
 
 Firstly, we need to load (or create) pytorch model:
 
@@ -144,13 +141,9 @@ Activations:
 
 * ReLU
 * LeakyReLU
-* PReLU (only with 0.2)
-* SELU (only with 0.2)
 * Tanh
 * HardTanh (clamp)
 * Softmax
-* Softplus (only with 0.2)
-* Softsign (only with 0.2)
 * Sigmoid
 
 Element-wise:
