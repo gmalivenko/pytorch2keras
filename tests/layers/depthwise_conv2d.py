@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
         k_model = pytorch_to_keras(model, input_var, (inp, inp, inp,), verbose=True)
 
-        error = check_error(output, k_model, input_np)        
+        error = check_error(output, k_model, input_np)
         if max_error < error:
             max_error = error
 

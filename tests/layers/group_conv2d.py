@@ -35,7 +35,7 @@ if __name__ == '__main__':
     for i in range(100):
         kernel_size = np.random.randint(1, 7)
         groups = np.random.randint(1, 10)
-        inp = np.random.randint(kernel_size + 1, 10)  * groups
+        inp = np.random.randint(kernel_size + 1, 10) * groups
         h, w = 32, 32
         model = TestGroupConv2d(inp, groups)
 

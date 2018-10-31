@@ -13,8 +13,8 @@ class TestInstanceNorm2d(nn.Module):
         super(TestInstanceNorm2d, self).__init__()
         self.conv2d = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
         self.bn = nn.InstanceNorm2d(out, affine=True)
-        self.bn.weight = torch.nn.Parameter(torch.FloatTensor(self.bn.weight.size()).uniform_(0,1))
-        self.bn.bias = torch.nn.Parameter(torch.FloatTensor(self.bn.bias.size()).uniform_(2,3))
+        self.bn.weight = torch.nn.Parameter(torch.FloatTensor(self.bn.weight.size()).uniform_(0, 1))
+        self.bn.bias = torch.nn.Parameter(torch.FloatTensor(self.bn.bias.size()).uniform_(2, 3))
 
     def forward(self, x):
         x = self.conv2d(x)

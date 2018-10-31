@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import torch.nn as nn
 from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
 import torchvision
@@ -29,7 +28,7 @@ if __name__ == '__main__':
 
         k_model = pytorch_to_keras(model, input_var, (3, 224, 224,), verbose=True)
 
-        error = check_error(output, k_model, input_np)        
+        error = check_error(output, k_model, input_np)
         if max_error < error:
             max_error = error
 

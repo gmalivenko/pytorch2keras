@@ -12,9 +12,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-# 0.034489512
-
-
 
 def depthwise_conv3x3(channels,
                       stride):
@@ -38,6 +35,7 @@ def group_conv1x1(in_channels,
         groups=groups,
         bias=False)
 
+
 def channel_shuffle(x,
                     groups):
     """Channel Shuffle operation from ShuffleNet [arxiv: 1707.01083]
@@ -46,7 +44,6 @@ def channel_shuffle(x,
         groups (int): groups to be split
     """
     batch, channels, height, width = x.size()
-    #assert (channels % groups == 0)
     channels_per_group = channels // groups
     x = x.view(batch, groups, channels_per_group, height, width)
     x = torch.transpose(x, 1, 2).contiguous()
@@ -60,13 +57,13 @@ class ChannelShuffle(nn.Module):
                  channels,
                  groups):
         super(ChannelShuffle, self).__init__()
-        #assert (channels % groups == 0)
         if channels % groups != 0:
             raise ValueError('channels must be divisible by groups')
         self.groups = groups
 
     def forward(self, x):
         return channel_shuffle(x, self.groups)
+
 
 class ShuffleInitBlock(nn.Module):
 
@@ -95,7 +92,6 @@ class ShuffleInitBlock(nn.Module):
         x = self.activ(x)
         x = self.pool(x)
         return x
-
 
 
 def conv1x1(in_channels,
@@ -344,22 +340,3 @@ if __name__ == '__main__':
             max_error = error
 
     print('Max error: {0}'.format(max_error))
-#
-#
-# if __name__ == "__main__":
-#     import numpy as np
-#     import torch
-#     from torch.autograd import Variable
-#     net = menet228_12x1_g3(num_classes=1000)
-#     input = Variable(torch.randn(1, 3, 224, 224))
-#     output = net(input)
-#     #print(output.size())
-#     #print("net={}".format(net))
-#
-#     net.train()
-#     net_params = filter(lambda p: p.requires_grad, net.parameters())
-#     weight_count = 0
-#     for param in net_params:
-#         weight_count += np.prod(param.size())
-#     print("weight_count={}".format(weight_count))
-#

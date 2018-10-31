@@ -18,6 +18,7 @@ class TestConvTranspose2d(nn.Module):
         x = self.conv2d(x)
         return x
 
+
 class ConvTranspose2dTest(unittest.TestCase):
     N = 100
 
@@ -45,7 +46,7 @@ class ConvTranspose2dTest(unittest.TestCase):
                 max_error = error
 
         print('Max error: {0}'.format(max_error))
-    
+
     def test_with_padding(self):
         max_error = 0
         for i in range(self.N):
@@ -70,6 +71,7 @@ class ConvTranspose2dTest(unittest.TestCase):
                 max_error = error
 
         print('Max error: {0}'.format(max_error))
+
 
 if __name__ == '__main__':
     unittest.main()

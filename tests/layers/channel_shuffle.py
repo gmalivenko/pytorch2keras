@@ -12,7 +12,6 @@ def channel_shuffle(x, groups):
         groups (int): groups to be split
     """
     batch, channels, height, width = x.size()
-    #assert (channels % groups == 0)
     channels_per_group = channels // groups
     x = x.view(batch, groups, channels_per_group, height, width)
     x = torch.transpose(x, 1, 2).contiguous()
@@ -59,4 +58,3 @@ if __name__ == '__main__':
             max_error = error
 
     print('Max error: {0}'.format(max_error))
-

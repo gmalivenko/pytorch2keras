@@ -32,7 +32,12 @@ if __name__ == '__main__':
         input_var3 = Variable(torch.FloatTensor(input_np))
         output = model(input_var, input_var2, input_var3)
 
-        k_model = pytorch_to_keras(model, [input_var, input_var2, input_var3], [(inp, inp, inp,), (inp, inp, inp,), (inp, inp, inp,)], verbose=True)
+        k_model = pytorch_to_keras(
+            model,
+            [input_var, input_var2, input_var3],
+            [(inp, inp, inp,), (inp, inp, inp,), (inp, inp, inp,)],
+            verbose=True
+        )
         k_model.summary()
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict([input_np, input_np, input_np])

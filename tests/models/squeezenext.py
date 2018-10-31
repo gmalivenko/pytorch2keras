@@ -7,7 +7,6 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
-import torchvision
 
 import os
 import torch.nn as nn
@@ -379,8 +378,6 @@ def sqnxt23v5_w2(**kwargs):
         Location for keeping the model parameters.
     """
     return get_squeezenext(version="23v5", width_scale=2.0, model_name="sqnxt23v5_w2", **kwargs)
-
-
 
 
 if __name__ == '__main__':

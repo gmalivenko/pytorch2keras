@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
-from sys import exit
 
 
 class TestMultipleInputs(nn.Module):
@@ -17,9 +16,7 @@ class TestMultipleInputs(nn.Module):
         self.in2d = nn.InstanceNorm2d(out)
 
     def forward(self, x, y, z):
-        # return self.in2d(self.conv2d(x)) + self.conv2d(y) + self.conv2d(z)
         return self.in2d(self.deconv2d(x)) + self.in2d(self.deconv2d(y)) + self.in2d(self.deconv2d(z))
-        # return self.conv2d(x) + self.conv2d(y) + self.conv2d(z)
 
 
 def check_error(output, k_model, input_np, epsilon=1e-5):
@@ -49,9 +46,14 @@ if __name__ == '__main__':
 
         output = model(input_var, input_var2, input_var3)
 
-        k_model = pytorch_to_keras(model, [input_var, input_var2, input_var3], [(inp, isnp, inp,), (inp, inp, inp,), (inp, inp, inp,)], verbose=True)
+        k_model = pytorch_to_keras(
+            model,
+            [input_var, input_var2, input_var3],
+            [(inp, inp, inp,), (inp, inp, inp,), (inp, inp, inp,)],
+            verbose=True
+        )
 
-        error = check_error(output, k_model, input_np)        
+        error = check_error(output, k_model, input_np)
         if max_error < error:
             max_error = error
 

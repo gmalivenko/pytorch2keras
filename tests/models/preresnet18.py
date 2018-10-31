@@ -6,7 +6,6 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
-import torchvision
 
 import os
 import torch.nn as nn

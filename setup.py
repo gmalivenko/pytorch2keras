@@ -17,7 +17,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 
 
 with open('README.md') as f:
-  long_description = f.read()
+    long_description = f.read()
 
 
 setup(name='pytorch2keras',
