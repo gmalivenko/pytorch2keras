@@ -40,7 +40,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
     weights_name = '{0}.weight'.format(w_name)
     input_name = inputs[0]
 
-    if len(weights[weights_name].numpy().shape) == 5: # 3D conv
+    if len(weights[weights_name].numpy().shape) == 5:  # 3D conv
         W = weights[weights_name].numpy().transpose(2, 3, 4, 1, 0)
         height, width, channels, n_layers, n_filters = W.shape
 
@@ -98,9 +98,12 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
         in_channels = channels_per_group * n_groups
 
         if n_groups == in_channels:
-            print('Perform depthwise convolution: h={} w={} in={} out={}'
-                .format(height, width, in_channels, out_channels))
-            
+            print(
+                'Perform depthwise convolution: h={} w={} in={} out={}'.format(
+                    height, width, in_channels, out_channels
+                )
+            )
+
             if bias_name in weights:
                 biases = weights[bias_name].numpy()
                 has_bias = True
@@ -115,7 +118,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
                 weights = [W, pointwise_wt, biases]
             else:
                 weights = [W, pointwise_wt]
-            
+
             conv = keras.layers.SeparableConv2D(
                 filters=out_channels,
                 depth_multiplier=1,
@@ -136,19 +139,18 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
             # input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
             # weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=weights)
             # output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
-                
+
             # # Concat the convolved output together again
             # conv = tf.concat(axis=3, values=output_groups)
             def target_layer(x, groups=params['group'], stride_y=params['strides'][0], stride_x=params['strides'][1]):
                 x = tf.transpose(x, [0, 2, 3, 1])
 
-                convolve = lambda i, k: tf.nn.conv2d(i, k,
-                                                     strides=[1, stride_y, stride_x, 1],
-                                                     padding='VALID')
+                def convolve_lambda(i, k):
+                    return tf.nn.conv2d(i, k, strides=[1, stride_y, stride_x, 1], padding='VALID')
 
                 input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
                 weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=W.transpose(0, 1, 2, 3))
-                output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
+                output_groups = [convolve_lambda(i, k) for i, k in zip(input_groups, weight_groups)]
 
                 layer = tf.concat(axis=3, values=output_groups)
 
@@ -279,9 +281,9 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, n
             bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
-        
+
         layers[scope_name] = conv(layers[input_name])
-        
+
         # Magic ad-hoc.
         # See the Keras issue: https://github.com/keras-team/keras/issues/6777
         layers[scope_name].set_shape(layers[scope_name]._keras_shape)
@@ -639,13 +641,15 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
     beta = layers[inputs[-1]]
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
-        layer = tf.contrib.layers.instance_norm(x,
+        layer = tf.contrib.layers.instance_norm(
+            x,
             param_initializers={'beta': tf.constant_initializer(beta), 'gamma': tf.constant_initializer(gamma)},
             epsilon=epsilon, data_format='NCHW',
-            trainable=False)
+            trainable=False
+        )
         return layer
 
-    lambda_layer = keras.layers.Lambda(target_layer)
+    lambda_layer = keras.layers.Lambda(target_layer, name=tf_name)
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
@@ -784,7 +788,7 @@ def convert_concat(params, w_name, scope_name, inputs, layers, weights, names):
         # no-op
         layers[scope_name] = concat_nodes[0]
         return
-    
+
     if names == 'short':
         tf_name = 'CAT' + random_string(5)
     elif names == 'keep':
@@ -992,10 +996,10 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, names
     if params['perm'][0] != 0:
         # raise AssertionError('Cannot permute batch dimension')
         print('!!! Cannot permute batch dimension. Result may be wrong !!!')
-        try:
-            layers[scope_name] = layers[inputs[0]]
-        except:
-            pass
+        # try:
+        layers[scope_name] = layers[inputs[0]]
+        # except:
+        #     pass
     else:
         if names:
             tf_name = 'PERM' + random_string(4)
@@ -1277,14 +1281,15 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
     else:
         tf_name = w_name + str(random.random())
 
-    global_pool = keras.layers.GlobalAveragePooling2D()
-    layers_global_pool = global_pool(layers[inputs[0]])
+    global_pool = keras.layers.GlobalAveragePooling2D(data_format='channels_first', name=tf_name)
+    layers[scope_name] = global_pool(layers[inputs[0]])
 
     def target_layer(x):
         return keras.backend.expand_dims(x)
 
-    lambda_layer = keras.layers.Lambda(target_layer)
-    layers[scope_name] = lambda_layer(layers_global_pool)
+    lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
+    layers[scope_name] = lambda_layer(layers[scope_name]) # double expand dims
+    layers[scope_name] = lambda_layer(layers[scope_name])
 
 
 def convert_slice(params, w_name, scope_name, inputs, layers, weights, names):
