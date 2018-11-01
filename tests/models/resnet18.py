@@ -26,10 +26,6 @@ if __name__ == '__main__':
         input_var = Variable(torch.FloatTensor(input_np))
         output = model(input_var)
 
-        output.sum().backward()
-
-        print(dir(output.grad_fn.next_functions[0][0]))
-        exit(0)
         k_model = pytorch_to_keras(model, input_var, (3, 224, 224,), verbose=True)
 
         error = check_error(output, k_model, input_np)
