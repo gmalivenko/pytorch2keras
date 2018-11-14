@@ -1385,6 +1385,58 @@ def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, names):
     layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
+def convert_unsqueeze(params, w_name, scope_name, inputs, layers, weights, names):
+    """
+    Convert unsqueeze operation.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        names: use short names for keras layers
+    """
+    print('Converting unsqueeze ...')
+
+    if names == 'short':
+        tf_name = 'UNSQ' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
+    else:
+        tf_name = w_name + str(random.random())
+
+
+    def target_layer(x):
+        return keras.backend.expand_dims(x)
+
+    lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
+    layers[scope_name] = lambda_layer(layers[inputs[0]]) 
+
+
+def convert_shape(params, w_name, scope_name, inputs, layers, weights, names):
+    """
+    Convert shape operation.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        names: use short names for keras layers
+    """
+    print('Converting shape ...')
+
+    def target_layer(x):
+        return tf.shape(x)
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+
 AVAILABLE_CONVERTERS = {
     'onnx::Conv': convert_conv,
     'onnx::ConvTranspose': convert_convtranspose,
@@ -1419,6 +1471,9 @@ AVAILABLE_CONVERTERS = {
     'onnx::Upsample': convert_upsample,
     'onnx::Pad': convert_padding,
     'aten::adaptive_avg_pool2d': convert_adaptive_avg_pool2d,
+    'aten::adaptive_max_pool2d': convert_adaptive_max_pool2d,
     'onnx::Slice': convert_slice,
     'onnx::Squeeze': convert_squeeze,
+    'onnx::Unsqueeze': convert_unsqueeze,
+    'onnx::Shape': convert_shape,
 }
