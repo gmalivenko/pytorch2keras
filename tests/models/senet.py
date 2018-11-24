@@ -19,8 +19,10 @@ class SELayer(nn.Module):
 
     def forward(self, x):
         b, c, _, _ = x.size()
-        y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1)
+        y = self.avg_pool(x)
+        y = y.view([int(b), -1])
+        y = self.fc(y)
+        y = y.view([int(b), int(c), 1, 1])
         return x * y
 
 
@@ -230,7 +232,7 @@ class CifarSEResNet(nn.Module):
         x = self.layer3(x)
 
         x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        x = x.view([int(x.size(0)), -1])
         x = self.fc(x)
 
         return x
@@ -252,7 +254,7 @@ class CifarSEPreActResNet(CifarSEResNet):
         x = self.relu(x)
 
         x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        x = x.view([int(x.size(0)), -1])
         x = self.fc(x)
 
 
