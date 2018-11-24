@@ -5,6 +5,17 @@ from pytorch2keras.converter import pytorch_to_keras
 import torchvision
 
 
+class AlexNet(torchvision.models.AlexNet):
+    def __init__(self):
+        super(AlexNet, self).__init__()
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view([int(x.size(0)), 256 * 6 * 6])  # << important fix
+        x = self.classifier(x)
+        return x
+
+
 def check_error(output, k_model, input_np, epsilon=1e-5):
     pytorch_output = output.data.numpy()
     keras_output = k_model.predict(input_np)
@@ -19,7 +30,7 @@ def check_error(output, k_model, input_np, epsilon=1e-5):
 if __name__ == '__main__':
     max_error = 0
     for i in range(100):
-        model = torchvision.models.AlexNet()
+        model = AlexNet()
         model.eval()
 
         input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
