@@ -5,6 +5,17 @@ from pytorch2keras.converter import pytorch_to_keras
 import torchvision
 
 
+class VGG(torchvision.models.vgg.VGG):
+    def __init__(self, *args, **kwargs):
+        super(VGG, self).__init__(*args, **kwargs)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view([int(x.size(0)), -1])
+        x = self.classifier(x)
+        return x
+
+
 def check_error(output, k_model, input_np, epsilon=1e-5):
     pytorch_output = output.data.numpy()
     keras_output = k_model.predict(input_np)
@@ -19,7 +30,7 @@ def check_error(output, k_model, input_np, epsilon=1e-5):
 if __name__ == '__main__':
     max_error = 0
     for i in range(100):
-        model = torchvision.models.vgg11_bn()
+        model = VGG(torchvision.models.vgg.make_layers(torchvision.models.vgg.cfg['A'], batch_norm=True))
         model.eval()
 
         input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
