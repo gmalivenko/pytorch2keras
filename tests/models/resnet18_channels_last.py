@@ -21,7 +21,7 @@ class ResNet(torchvision.models.resnet.ResNet):
         x = self.layer4(x)
 
         x = self.avgpool(x)
-        x = x.view(int(x.size(0)), -1)  #  << This fix again
+        x = x.view(int(x.size(0)), -1)  # << This fix again
         x = self.fc(x)
         return x
 

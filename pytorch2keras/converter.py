@@ -10,7 +10,7 @@ import torch.jit
 import torch.autograd
 import torch.serialization
 from torch.jit import _unique_state_dict
-from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes
+from torch.onnx import OperatorExportTypes
 
 from .layers import AVAILABLE_CONVERTERS
 
@@ -33,6 +33,7 @@ def set_training(model, mode):
     finally:
         if old_mode != mode:
             model.train(old_mode)
+
 
 if torch.__version__ != '0.4.1':
     from torch._C import ListType
@@ -94,7 +95,7 @@ def _optimize_graph(graph, operator_export_type=OperatorExportTypes.RAW):
     else:
         torch._C._jit_pass_dce(graph)
         torch._C._jit_pass_lint(graph)
-        
+
         torch._C._jit_pass_peephole(graph)
         torch._C._jit_pass_lint(graph)
 
@@ -182,9 +183,8 @@ def pytorch_to_keras(
     # It's better to replace it with onnx::Flatten
     from types import SimpleNamespace
     seq_to_find = \
-        ['onnx::Constant', 'onnx::Shape', 'onnx::Gather', 'onnx::Constant', 'onnx::Unsqueeze', 'onnx::Unsqueeze', 'onnx::Concat', 'onnx::Reshape']
-    seq_to_replace = \
-        ['onnx::Flatten']
+        ['onnx::Constant', 'onnx::Shape', 'onnx::Gather',
+         'onnx::Constant', 'onnx::Unsqueeze', 'onnx::Unsqueeze', 'onnx::Concat', 'onnx::Reshape']
     k = 0
     s = 0
     for i, node in enumerate(nodes):

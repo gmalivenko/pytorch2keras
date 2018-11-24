@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 from pytorch2keras.converter import pytorch_to_keras
-import torchvision
 import torch.nn as nn
 
 
@@ -10,9 +9,11 @@ import torch.nn as nn
 import math
 BatchNorm = nn.BatchNorm2d
 
+
 def conv3x3(in_planes, out_planes, stride=1, padding=1, dilation=1):
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-        padding=padding, bias=False, dilation=dilation)
+    return nn.Conv2d(
+        in_planes, out_planes, kernel_size=3, stride=stride, padding=padding, bias=False, dilation=dilation
+    )
 
 
 class BasicBlock(nn.Module):
@@ -316,90 +317,6 @@ class DRN_A(nn.Module):
         return x
 
 
-def drn_a_50(pretrained=False, **kwargs):
-    model = DRN_A(Bottleneck, [3, 4, 6, 3], **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
-    return model
-
-
-def drn_c_26(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 2, 2, 2, 2, 1, 1], arch='C', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-c-26']))
-    return model
-
-
-def drn_c_42(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 3, 4, 6, 3, 1, 1], arch='C', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-c-42']))
-    return model
-
-
-def drn_c_58(pretrained=False, **kwargs):
-    model = DRN(Bottleneck, [1, 1, 3, 4, 6, 3, 1, 1], arch='C', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-c-58']))
-    return model
-
-
-def drn_d_22(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 2, 2, 2, 2, 1, 1], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-22']))
-    return model
-
-
-def drn_d_24(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 2, 2, 2, 2, 2, 2], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-24']))
-    return model
-
-
-def drn_d_38(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 3, 4, 6, 3, 1, 1], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-38']))
-    return model
-
-
-def drn_d_40(pretrained=False, **kwargs):
-    model = DRN(BasicBlock, [1, 1, 3, 4, 6, 3, 2, 2], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-40']))
-    return model
-
-
-def drn_d_54(pretrained=False, **kwargs):
-    model = DRN(Bottleneck, [1, 1, 3, 4, 6, 3, 1, 1], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-54']))
-    return model
-
-
-def drn_d_56(pretrained=False, **kwargs):
-    model = DRN(Bottleneck, [1, 1, 3, 4, 6, 3, 2, 2], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-56']))
-    return model
-
-
-def drn_d_105(pretrained=False, **kwargs):
-    model = DRN(Bottleneck, [1, 1, 3, 4, 23, 3, 1, 1], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-105']))
-    return model
-
-
-def drn_d_107(pretrained=False, **kwargs):
-    model = DRN(Bottleneck, [1, 1, 3, 4, 23, 3, 2, 2], arch='D', **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['drn-d-107']))
-    return model
-
-
 def check_error(output, k_model, input_np, epsilon=1e-5):
     pytorch_output = output.data.numpy()
     keras_output = k_model.predict(input_np)
@@ -414,7 +331,7 @@ def check_error(output, k_model, input_np, epsilon=1e-5):
 if __name__ == '__main__':
     max_error = 0
     for i in range(100):
-        model = drn_c_26()
+        model = DRN(BasicBlock, [1, 1, 2, 2, 2, 2, 1, 1], arch='C')
         model.eval()
 
         input_np = np.random.uniform(0, 1, (1, 3, 224, 224))

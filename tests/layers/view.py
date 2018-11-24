@@ -1,4 +1,5 @@
 import numpy as np
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -6,35 +7,36 @@ from pytorch2keras.converter import pytorch_to_keras
 
 
 class TestView(nn.Module):
-    """Module for View conversion testing
-    """
-
-    def __init__(self, inp=10, out=16, kernel_size=3, bias=True):
+    def __init__(self):
         super(TestView, self).__init__()
-        self.conv2d = nn.Conv2d(inp, out, kernel_size=kernel_size, bias=bias)
+        self.conv2d = nn.Conv2d(22, 32, kernel_size=1, bias=True)
+        self.fc = nn.Linear(15488, 3)
 
     def forward(self, x):
         x = self.conv2d(x)
-        x = x.view([x.size(0), -1, 2, 1, 1, 1, 1, 1]).view(x.size(0), -1).view(x.size(0), -1)
-        x = torch.nn.Tanh()(x)
+
+        print(type(x.size()[0]))
+
+        x = x.view([int(x.size(0)), -1])
+        x = self.fc(x)
         return x
 
 
 if __name__ == '__main__':
     max_error = 0
     for i in range(100):
-        kernel_size = np.random.randint(1, 7)
-        inp = 2 * np.random.randint(kernel_size + 1, 10)
-        out = 2 * np.random.randint(1, 10)
+        kernel_size = 1
+        inp = 22
+        out = 32
 
-        model = TestView(inp, out, kernel_size, inp % 2)
+        model = TestView()
 
         input_np = np.random.uniform(0, 1, (1, inp, inp, inp))
         input_var = Variable(torch.FloatTensor(input_np))
-        output = model(input_var)
 
         k_model = pytorch_to_keras(model, input_var, (inp, inp, inp,), verbose=True)
 
+        output = model(input_var)
         pytorch_output = output.data.numpy()
         keras_output = k_model.predict(input_np)
 

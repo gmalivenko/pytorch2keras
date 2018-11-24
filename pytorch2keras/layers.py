@@ -1034,8 +1034,6 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, names):
         if layers[inputs[1]][0] == -1:
             print('Cannot deduct batch size! It will be omitted, but result may be wrong.')
 
-        print(layers[inputs[0]])
-       
         def target_layer(x, shape=layers[inputs[1]]):
             return tf.reshape(x, shape)
 
@@ -1180,11 +1178,10 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, names)
     params_list = params['value'].numpy().tolist()
 
     def target_layer(x):
-        import keras.backend as K
         return tf.constant(params_list)
 
     lambda_layer = keras.layers.Lambda(target_layer)
-    layers[scope_name] = lambda_layer(layers['input0']) # Temporary fix for nonexistent input name created by converter.py
+    layers[scope_name] = lambda_layer(layers['input0'])  # Temporary fix for nonexistent input name created by converter.py
     # layers[scope_name] = params['value'].tolist()
 
 
@@ -1295,7 +1292,7 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
-    layers[scope_name] = lambda_layer(layers[scope_name]) # double expand dims
+    layers[scope_name] = lambda_layer(layers[scope_name])  # double expand dims
     layers[scope_name] = lambda_layer(layers[scope_name])
 
 
@@ -1328,7 +1325,7 @@ def convert_adaptive_max_pool2d(params, w_name, scope_name, inputs, layers, weig
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
-    layers[scope_name] = lambda_layer(layers[scope_name]) # double expand dims
+    layers[scope_name] = lambda_layer(layers[scope_name])  # double expand dims
     layers[scope_name] = lambda_layer(layers[scope_name])
 
 
@@ -1414,12 +1411,11 @@ def convert_unsqueeze(params, w_name, scope_name, inputs, layers, weights, names
     else:
         tf_name = w_name + str(random.random())
 
-
     def target_layer(x):
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
-    layers[scope_name] = lambda_layer(layers[inputs[0]]) 
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
 def convert_shape(params, w_name, scope_name, inputs, layers, weights, names):
