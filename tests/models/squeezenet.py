@@ -103,7 +103,7 @@ class SqueezeNet(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = self.classifier(x)
-        return x.view(x.size(0), self.num_classes)
+        return x.view([int(x.size(0)), self.num_classes])
 
 
 if __name__ == '__main__':
