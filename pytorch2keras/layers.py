@@ -1034,8 +1034,15 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, names):
         if layers[inputs[1]][0] == -1:
             print('Cannot deduct batch size! It will be omitted, but result may be wrong.')
 
-        reshape = keras.layers.Reshape(layers[inputs[1]][1:], name=tf_name)
-        layers[scope_name] = reshape(layers[inputs[0]])
+        print(layers[inputs[0]])
+       
+        def target_layer(x, shape=layers[inputs[1]]):
+            return tf.reshape(x, shape)
+
+        lambda_layer = keras.layers.Lambda(target_layer)
+        layers[scope_name] = lambda_layer(layers[inputs[0]])
+
+        # layers[scope_name] = reshape(layers[inputs[0]])
     else:
         reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
         layers[scope_name] = reshape(layers[inputs[0]])
@@ -1170,15 +1177,15 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, names)
     """
     print('Converting constant ...')
 
-    # params_list = params['value'].numpy().tolist()
+    params_list = params['value'].numpy().tolist()
 
-    # def target_layer(x):
-    #     import keras.backend as K
-    #     return K.constant(params_list)
+    def target_layer(x):
+        import keras.backend as K
+        return tf.constant(params_list)
 
-    # lambda_layer = keras.layers.Lambda(target_layer)
-    # layers[scope_name] = lambda_layer(layers['input0']) # Temporary fix for nonexistent input name created by converter.py
-    layers[scope_name] = params['value'].tolist()
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers['input0']) # Temporary fix for nonexistent input name created by converter.py
+    # layers[scope_name] = params['value'].tolist()
 
 
 def convert_upsample(params, w_name, scope_name, inputs, layers, weights, names):
@@ -1470,7 +1477,9 @@ AVAILABLE_CONVERTERS = {
     'onnx::Constant': convert_constant,
     'onnx::Upsample': convert_upsample,
     'onnx::Pad': convert_padding,
+    'onnx::GlobalAveragePool': convert_adaptive_avg_pool2d,
     'aten::adaptive_avg_pool2d': convert_adaptive_avg_pool2d,
+    'onnx::GlobalMaxPool': convert_adaptive_max_pool2d,
     'aten::adaptive_max_pool2d': convert_adaptive_max_pool2d,
     'onnx::Slice': convert_slice,
     'onnx::Squeeze': convert_squeeze,
