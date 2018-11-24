@@ -2,12 +2,15 @@
 The PyTorch2Keras converter module over JIT-trace.
 """
 
+import contextlib
+from packaging import version
+
 import torch
 import torch.jit
 import torch.autograd
 import torch.serialization
-import contextlib
 from torch.jit import _unique_state_dict
+from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes
 
 from .layers import AVAILABLE_CONVERTERS
 
@@ -31,67 +34,82 @@ def set_training(model, mode):
         if old_mode != mode:
             model.train(old_mode)
 
-from torch._C import ListType
+if torch.__version__ != '0.4.1':
+    from torch._C import ListType
 
-# ONNX can't handle constants that are lists of tensors, which can
-# get generated in constant prop. So we split them back into prim::ListConstructs
-def _split_tensor_list_constants(g, block):
-    for node in block.nodes():
-        for subblock in node.blocks():
-            _split_tensor_list_constants(g, subblock)
-        if node.kind() == "prim::Constant":
-            output_type = node.output().type()
-            if output_type.isSubtypeOf(ListType.ofTensors()):
-                inputs = [g.create("prim::Constant").t_('value', t)
-                           .insertBefore(node).output()
-                          for t in node['value']]
-                lc = (g.create("prim::ListConstruct", inputs)
-                      .insertBefore(node)
-                      .output()
-                      .setType(ListType.ofTensors()))
-                node.output().replaceAllUsesWith(lc)
+    # ONNX can't handle constants that are lists of tensors, which can
+    # get generated in constant prop. So we split them back into prim::ListConstructs
+    def _split_tensor_list_constants(g, block):
+        for node in block.nodes():
+            for subblock in node.blocks():
+                _split_tensor_list_constants(g, subblock)
+            if node.kind() == "prim::Constant":
+                output_type = node.output().type()
+                if output_type.isSubtypeOf(ListType.ofTensors()):
+                    inputs = [g.create("prim::Constant").t_('value', t)
+                               .insertBefore(node).output()
+                              for t in node['value']]
+                    lc = (g.create("prim::ListConstruct", inputs)
+                          .insertBefore(node)
+                          .output()
+                          .setType(ListType.ofTensors()))
+                    node.output().replaceAllUsesWith(lc)
 
-from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes
+
 def _optimize_graph(graph, operator_export_type=OperatorExportTypes.RAW):
-    torch._C._jit_pass_remove_inplace_ops(graph)
-    # we record now record some ops like ones/zeros
-    # into a trace where we previously recorded constants
-    # use constant prop to maintain our current level of onnx support
-    # without implementing symbolics for all of them
-    torch._C._jit_pass_constant_propagation(graph)
-    # _split_tensor_list_constants(graph, graph)
-    # run dce to eliminate dead parts of the graph that might have been
-    # left behind by things like symbolic_override
-    torch._C._jit_pass_dce(graph)
-    torch._C._jit_pass_lint(graph)
-
-    torch._C._jit_pass_canonicalize_ops(graph)
-    torch._C._jit_pass_lint(graph)
-
-    torch._C._jit_pass_peephole(graph, True)
-    torch._C._jit_pass_lint(graph)
-
-    # onnx only supports tensors, but 1 / 2 = 0.5 and tensor(1) / tensor(2) = 0
-    torch._C._jit_pass_prepare_division_for_onnx(graph)
-    # onnx only supports tensors, so we turn all out number types into tensors
-    torch._C._jit_pass_erase_number_types(graph)
-    # onnx does not support tuples, so try to remove them
-    torch._C._jit_pass_lower_all_tuples(graph)
-    # torch._C._jit_pass_peephole(graph, True)
-    torch._C._jit_pass_lint(graph)
-
-    if operator_export_type != OperatorExportTypes.RAW:
-        graph = torch._C._jit_pass_onnx(graph, operator_export_type)
+    if version.parse('0.4.1') < version.parse(torch.__version__):
+        torch._C._jit_pass_remove_inplace_ops(graph)
+        # we record now record some ops like ones/zeros
+        # into a trace where we previously recorded constants
+        # use constant prop to maintain our current level of onnx support
+        # without implementing symbolics for all of them
+        torch._C._jit_pass_constant_propagation(graph)
+        # _split_tensor_list_constants(graph, graph)
+        # run dce to eliminate dead parts of the graph that might have been
+        # left behind by things like symbolic_override
+        torch._C._jit_pass_dce(graph)
         torch._C._jit_pass_lint(graph)
-        torch._C._jit_pass_onnx_peephole(graph)
+        torch._C._jit_pass_canonicalize_ops(graph)
         torch._C._jit_pass_lint(graph)
-    torch._C._jit_pass_dce(graph)
-    torch._C._jit_pass_lint(graph)
-    # torch._C._jit_pass_fixup_onnx_loops(graph)
-    # torch._C._jit_pass_lint(graph)
-    # graph = torch._C._jit_pass_canonicalize(graph)
-    # torch._C._jit_pass_lint(graph)
+
+        torch._C._jit_pass_peephole(graph, True)
+        torch._C._jit_pass_lint(graph)
+
+        # onnx only supports tensors, but 1 / 2 = 0.5 and tensor(1) / tensor(2) = 0
+        torch._C._jit_pass_prepare_division_for_onnx(graph)
+        # onnx only supports tensors, so we turn all out number types into tensors
+        torch._C._jit_pass_erase_number_types(graph)
+        # onnx does not support tuples, so try to remove them
+        torch._C._jit_pass_lower_all_tuples(graph)
+        # torch._C._jit_pass_peephole(graph, True)
+        torch._C._jit_pass_lint(graph)
+
+        if operator_export_type != OperatorExportTypes.RAW:
+            graph = torch._C._jit_pass_onnx(graph, operator_export_type)
+            torch._C._jit_pass_lint(graph)
+            torch._C._jit_pass_onnx_peephole(graph)
+            torch._C._jit_pass_lint(graph)
+        torch._C._jit_pass_dce(graph)
+        torch._C._jit_pass_lint(graph)
+    else:
+        torch._C._jit_pass_dce(graph)
+        torch._C._jit_pass_lint(graph)
+        
+        torch._C._jit_pass_peephole(graph)
+        torch._C._jit_pass_lint(graph)
+
+        # torch._C._jit_pass_peephole(graph, True)
+        torch._C._jit_pass_lint(graph)
+
+        if operator_export_type != OperatorExportTypes.RAW:
+            graph = torch._C._jit_pass_onnx(graph, operator_export_type)
+            torch._C._jit_pass_lint(graph)
+            torch._C._jit_pass_onnx_peephole(graph)
+            torch._C._jit_pass_lint(graph)
+        torch._C._jit_pass_dce(graph)
+        torch._C._jit_pass_lint(graph)
     return graph
+
 
 def get_node_id(node):
     import re
