@@ -5,7 +5,28 @@ from pytorch2keras.converter import pytorch_to_keras
 import torchvision
 
 
-def check_error(output, k_model, input_np, epsilon=1e-5):
+class ResNet(torchvision.models.resnet.ResNet):
+    def __init__(self, *args, **kwargs):
+        super(ResNet, self).__init__(*args, **kwargs)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.avgpool(x)
+        x = x.view(int(x.size(0)), -1)  #  << This fix again
+        x = self.fc(x)
+        return x
+
+
+def check_error(output, k_model, input_np, epsilon=1e-3):
     pytorch_output = output.data.numpy()
     keras_output = k_model.predict(input_np)
 
@@ -19,7 +40,7 @@ def check_error(output, k_model, input_np, epsilon=1e-5):
 if __name__ == '__main__':
     max_error = 0
     for i in range(100):
-        model = torchvision.models.resnet50()
+        model = ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3])
         model.eval()
 
         input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
