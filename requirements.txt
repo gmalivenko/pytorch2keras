@@ -3,3 +3,4 @@ tensorflow==1.9.0
 numpy==1.14.1 
 torch==0.4
 torchvision==0.2.1
+packaging
