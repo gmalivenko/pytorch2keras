@@ -6,7 +6,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/pytorch2keras.svg)
 ![PyPI](https://img.shields.io/pypi/v/pytorch2keras.svg)
 
-Pytorch to Keras model convertor. Still beta for now.
+PyTorch to Keras model convertor. 
 
 ## Installation
 
@@ -15,8 +15,6 @@ pip install pytorch2keras
 ```
 
 ## Important notice
-
-At that moment the only PyTorch 0.4.0 is supported.
 
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
@@ -28,28 +26,33 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 ...
 ```
 
-## Python 3.7
+## PyTorch 0.4.1 and greater
 
-There are some problem related to a new version:
+There are [some problem related to a new version](https://github.com/pytorch/pytorch/issues/13963):
 
-Q. PyTorch 0.4 hadn't released wheel package for Python 3.7
-
-A. You can build it from source:
+To make it work, please, cast all your `.view()` parameters to `int`. For example:
 
 ```
-git clone https://github.com/pytorch/pytorch
+class ResNet(torchvision.models.resnet.ResNet):
+    def __init__(self, *args, **kwargs):
+        super(ResNet, self).__init__(*args, **kwargs)
 
-cd pytorch
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
 
-git checkout v0.4.0
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
 
-NO_CUDA=1 python setup.py install
+        x = self.avgpool(x)
+        x = x.view(int(x.size(0)), -1)  #  << Here
+        x = self.fc(x)
+        return x
 ```
-
-Q. Tensorflow isn't available for Python 3.7
-
-A. Yes, we're waiting for it.
-
 
 ## Tensorflow.js
 
