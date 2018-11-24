@@ -252,6 +252,8 @@ def pytorch_to_keras(
                     node_input_names.append(model_inputs[node_inputs[0]])
                 else:
                     input_name = 'input{0}'.format(input_index)
+                    if input_name not in layers:
+                        continue
                     node_input_names.append(input_name)
                     input_index += 1
                     model_inputs[node_inputs[0]] = input_name
