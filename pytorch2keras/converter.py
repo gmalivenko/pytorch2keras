@@ -167,6 +167,52 @@ def pytorch_to_keras(
     # Get all graph nodes
     nodes = list(trace.graph().nodes())
 
+    # Optimize Flatten:
+    # When we have something loke that:
+    #
+    # %523 : Long() = onnx::Constant[value={0}](), scope: ResNet
+    # %524 : Dynamic = onnx::Shape(%522), scope: ResNet
+    # %526 : Long() = onnx::Gather[axis=0](%524, %523), scope: ResNet
+    # %527 : Long() = onnx::Constant[value={-1}](), scope: ResNet
+    # %534 : Dynamic = onnx::Unsqueeze[axes=[0]](%526)
+    # %535 : Dynamic = onnx::Unsqueeze[axes=[0]](%527)
+    # %536 : Dynamic = onnx::Concat[axis=0](%534, %535)
+    # %529 : Float(1, 512) = onnx::Reshape(%522, %536), scope: ResNet
+    #
+    # It's better to replace it with onnx::Flatten
+    from types import SimpleNamespace
+    seq_to_find = \
+        ['onnx::Constant', 'onnx::Shape', 'onnx::Gather', 'onnx::Constant', 'onnx::Unsqueeze', 'onnx::Unsqueeze', 'onnx::Concat', 'onnx::Reshape']
+    seq_to_replace = \
+        ['onnx::Flatten']
+    k = 0
+    s = 0
+    for i, node in enumerate(nodes):
+        if node.kind() == seq_to_find[k]:
+            if k == 0:
+                s = i
+            k += 1
+            if k == len(seq_to_find):
+                print('found seq', k, s)
+                reshape_op = nodes[s + k - 1]
+                flatten_op = {
+                    'kind': (lambda: 'onnx::Flatten'),
+                    'attributeNames': (lambda: {}),
+                    'outputs':  (lambda: list(reshape_op.outputs())),
+                    'scopeName': (lambda: reshape_op.scopeName()),
+                    'inputs': (lambda: list(reshape_op.inputs())[:1]),
+                    '__str__': (lambda: reshape_op.__str__()),
+                }
+                print(flatten_op)
+                nodes = nodes[:s] + [SimpleNamespace(**flatten_op)] + nodes[s+k:]
+                # print(nodes)
+                # exit(0)
+                break
+        else:
+            k = 0
+            s = -1
+
+    print(nodes)
     # Collect graph outputs
     graph_outputs = [n.uniqueName() for n in trace.graph().outputs()]
     print('Graph outputs:', graph_outputs)
