@@ -10,7 +10,9 @@ import torch.jit
 import torch.autograd
 import torch.serialization
 from torch.jit import _unique_state_dict
-from torch.onnx import OperatorExportTypes
+
+if version.parse('0.4.1') <= version.parse(torch.__version__):
+    from torch.onnx import OperatorExportTypes
 
 from .layers import AVAILABLE_CONVERTERS
 
@@ -35,7 +37,7 @@ def set_training(model, mode):
             model.train(old_mode)
 
 
-if torch.__version__ != '0.4.1':
+if version.parse('0.4.1') < version.parse(torch.__version__):
     from torch._C import ListType
 
     # ONNX can't handle constants that are lists of tensors, which can
@@ -56,60 +58,78 @@ if torch.__version__ != '0.4.1':
                           .setType(ListType.ofTensors()))
                     node.output().replaceAllUsesWith(lc)
 
-
-def _optimize_graph(graph, operator_export_type=OperatorExportTypes.RAW):
-    if version.parse('0.4.1') < version.parse(torch.__version__):
-        torch._C._jit_pass_remove_inplace_ops(graph)
-        # we record now record some ops like ones/zeros
-        # into a trace where we previously recorded constants
-        # use constant prop to maintain our current level of onnx support
-        # without implementing symbolics for all of them
-        torch._C._jit_pass_constant_propagation(graph)
-        # _split_tensor_list_constants(graph, graph)
-        # run dce to eliminate dead parts of the graph that might have been
+if version.parse('0.4.0') >= version.parse(torch.__version__):
+    def _optimize_graph(graph, aten):
+        # run dce first to eliminate dead parts of the graph that might have been
         # left behind by things like symbolic_override
-        torch._C._jit_pass_dce(graph)
-        torch._C._jit_pass_lint(graph)
-        torch._C._jit_pass_canonicalize_ops(graph)
-        torch._C._jit_pass_lint(graph)
-
-        torch._C._jit_pass_peephole(graph, True)
-        torch._C._jit_pass_lint(graph)
-
-        # onnx only supports tensors, but 1 / 2 = 0.5 and tensor(1) / tensor(2) = 0
-        torch._C._jit_pass_prepare_division_for_onnx(graph)
-        # onnx only supports tensors, so we turn all out number types into tensors
-        torch._C._jit_pass_erase_number_types(graph)
-        # onnx does not support tuples, so try to remove them
-        torch._C._jit_pass_lower_all_tuples(graph)
-        # torch._C._jit_pass_peephole(graph, True)
-        torch._C._jit_pass_lint(graph)
-
-        if operator_export_type != OperatorExportTypes.RAW:
-            graph = torch._C._jit_pass_onnx(graph, operator_export_type)
-            torch._C._jit_pass_lint(graph)
-            torch._C._jit_pass_onnx_peephole(graph)
-            torch._C._jit_pass_lint(graph)
-        torch._C._jit_pass_dce(graph)
-        torch._C._jit_pass_lint(graph)
-    else:
         torch._C._jit_pass_dce(graph)
         torch._C._jit_pass_lint(graph)
 
         torch._C._jit_pass_peephole(graph)
         torch._C._jit_pass_lint(graph)
-
-        # torch._C._jit_pass_peephole(graph, True)
+        graph = torch._C._jit_pass_onnx(graph, aten)
         torch._C._jit_pass_lint(graph)
-
-        if operator_export_type != OperatorExportTypes.RAW:
-            graph = torch._C._jit_pass_onnx(graph, operator_export_type)
-            torch._C._jit_pass_lint(graph)
-            torch._C._jit_pass_onnx_peephole(graph)
-            torch._C._jit_pass_lint(graph)
+        torch._C._jit_pass_onnx_peephole(graph)
+        torch._C._jit_pass_lint(graph)
         torch._C._jit_pass_dce(graph)
         torch._C._jit_pass_lint(graph)
-    return graph
+        graph = torch._C._jit_pass_canonicalize(graph)
+        torch._C._jit_pass_lint(graph)
+        return graph
+else:
+    def _optimize_graph(graph, operator_export_type=OperatorExportTypes.RAW):
+        if version.parse('0.4.1') < version.parse(torch.__version__):
+            torch._C._jit_pass_remove_inplace_ops(graph)
+            # we record now record some ops like ones/zeros
+            # into a trace where we previously recorded constants
+            # use constant prop to maintain our current level of onnx support
+            # without implementing symbolics for all of them
+            torch._C._jit_pass_constant_propagation(graph)
+            # _split_tensor_list_constants(graph, graph)
+            # run dce to eliminate dead parts of the graph that might have been
+            # left behind by things like symbolic_override
+            torch._C._jit_pass_dce(graph)
+            torch._C._jit_pass_lint(graph)
+            torch._C._jit_pass_canonicalize_ops(graph)
+            torch._C._jit_pass_lint(graph)
+
+            torch._C._jit_pass_peephole(graph, True)
+            torch._C._jit_pass_lint(graph)
+
+            # onnx only supports tensors, but 1 / 2 = 0.5 and tensor(1) / tensor(2) = 0
+            torch._C._jit_pass_prepare_division_for_onnx(graph)
+            # onnx only supports tensors, so we turn all out number types into tensors
+            torch._C._jit_pass_erase_number_types(graph)
+            # onnx does not support tuples, so try to remove them
+            torch._C._jit_pass_lower_all_tuples(graph)
+            # torch._C._jit_pass_peephole(graph, True)
+            torch._C._jit_pass_lint(graph)
+
+            if operator_export_type != OperatorExportTypes.RAW:
+                graph = torch._C._jit_pass_onnx(graph, operator_export_type)
+                torch._C._jit_pass_lint(graph)
+                torch._C._jit_pass_onnx_peephole(graph)
+                torch._C._jit_pass_lint(graph)
+            torch._C._jit_pass_dce(graph)
+            torch._C._jit_pass_lint(graph)
+        else:
+            torch._C._jit_pass_dce(graph)
+            torch._C._jit_pass_lint(graph)
+
+            torch._C._jit_pass_peephole(graph)
+            torch._C._jit_pass_lint(graph)
+
+            # torch._C._jit_pass_peephole(graph, True)
+            torch._C._jit_pass_lint(graph)
+
+            if operator_export_type != OperatorExportTypes.RAW:
+                graph = torch._C._jit_pass_onnx(graph, operator_export_type)
+                torch._C._jit_pass_lint(graph)
+                torch._C._jit_pass_onnx_peephole(graph)
+                torch._C._jit_pass_lint(graph)
+            torch._C._jit_pass_dce(graph)
+            torch._C._jit_pass_lint(graph)
+        return graph
 
 
 def get_node_id(node):
@@ -156,7 +176,10 @@ def pytorch_to_keras(
                            "something weird is happening in your model!")
 
     # _optimize_trace(trace, False)
-    trace.set_graph(_optimize_graph(trace.graph(), OperatorExportTypes.ONNX))
+    if version.parse('0.4.0') < version.parse(torch.__version__):
+        trace.set_graph(_optimize_graph(trace.graph(), OperatorExportTypes.ONNX))
+    else:
+        trace.set_graph(_optimize_graph(trace.graph(), False))
 
     trace.graph().lint()
     if verbose:
