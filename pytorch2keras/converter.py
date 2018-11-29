@@ -360,4 +360,6 @@ def pytorch_to_keras(
 
         model = model_tf_ordering
 
+    print('Your model was (probably) successfully converted! '
+          'Please, follow the repository https://github.com/nerox8664/pytorch2keras and give a star :)')
     return model
