@@ -179,6 +179,7 @@ Misc:
 * Mobilenet v2
 * DiracNet
 * DARTS
+* DRNC
 
 ## Usage
 Look at the `tests` directory.
