@@ -211,9 +211,6 @@ Misc:
 | DenseNet-161 | 22.40 | 6.18 | 28,681,000 | 7,761.25M | Gluon Model Zoo| Success |
 | DenseNet-169 | 23.89 | 6.89 | 14,149,480 | 3,381.48M | Gluon Model Zoo| Success |
 | DenseNet-201 | 22.71 | 6.36 | 20,013,928 | 4,318.75M | Gluon Model Zoo| Success |
-<!-- | DPN-68 | 23.57 | 7.00 | 12,611,602 | 2,338.71M | Cadene's repo | Success |
-| DPN-98 | 20.23 | 5.28 | 61,570,728 | 11,702.80M | Cadene's repo | Success |
-| DPN-131 | 20.03 | 5.22 | 79,254,504 | 16,056.22M | Cadene's repo | Success | -->
 | DarkNet Tiny | 40.31 | 17.46 | 1,042,104 | 496.34M | osmr's repo | Success |
 | DarkNet Ref | 38.00 | 16.68 | 7,319,416 | 365.55M | osmr's repo | Success |
 | SqueezeNet v1.0 | 40.97 | 18.96 | 1,248,424 | 828.30M | osmr's repo | Success |
@@ -229,11 +226,7 @@ Misc:
 | MobileNetV2 x0.5 | 35.51 | 14.64 | 1,964,736 | 95.62M | Gluon Model Zoo| Success |
 | MobileNetV2 x0.75 | 30.82 | 11.26 | 2,627,592 | 191.61M | Gluon Model Zoo| Success |
 | MobileNetV2 x1.0 | 28.51 | 9.90 | 3,504,960 | 320.19M | Gluon Model Zoo| Success |
-<!-- | NASNet-A-Mobile | 25.37 | 7.95 | 5,289,978 | 587.29M | Cadene's repo | Success | -->
 | InceptionV3 | 21.22 | 5.59 | 23,834,568 | 5,746.72M | Gluon Model Zoo| Success |
-<!-- | AirNet50-1x64d (r=2) | 22.48 | 6.21 | 27,425,864 | 4,757.77M | soeaver/AirNet-PyTorch | Success |
-| AirNet50-1x64d (r=16) | 22.91 | 6.46 | 25,714,952 | 4,385.54M | soeaver/AirNet-PyTorch | Success | -->
-<!-- | AirNeXt50-32x4d (r=2) | 20.87 | 5.51 | 27,604,296 | 5,321.18M | soeaver/AirNet-PyTorch | Success | -->
 | DiracNetV2-18 | 31.47 | 11.70 | 11,511,784 | 1,798.43M | szagoruyko/diracnets | Success |
 | DiracNetV2-34 | 28.75 | 9.93 | 21,616,232 | 3,649.37M | szagoruyko/diracnets | Success |
 | DARTS | 26.70 | 8.74 | 4,718,752 | 537.64M | szagoruyko/diracnets | Success |
