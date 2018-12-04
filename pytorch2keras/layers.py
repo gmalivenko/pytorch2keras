@@ -128,6 +128,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
                 weights=weights,
                 use_bias=has_bias,
                 activation=None,
+                dilation_rate=params['dilations'][0],
                 bias_initializer='zeros', kernel_initializer='zeros',
                 name=tf_name
             )
