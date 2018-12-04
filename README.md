@@ -168,6 +168,7 @@ Misc:
 ## Models converted with pytorch2keras
 
 * ResNet*
+* VGG*
 * PreResNet*
 * SqueezeNet (with ceil_mode=False)
 * SqueezeNext
@@ -176,6 +177,8 @@ Misc:
 * Inception
 * SeNet
 * Mobilenet v2
+* DiracNet
+* DARTS
 
 ## Usage
 Look at the `tests` directory.
