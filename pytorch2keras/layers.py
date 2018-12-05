@@ -638,8 +638,8 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
 
     assert(len(inputs) == 3)
 
-    gamma = layers[inputs[-2]]
-    beta = layers[inputs[-1]]
+    gamma = layers[inputs[-2] + '_np']
+    beta = layers[inputs[-1] + '_np']
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
         layer = tf.contrib.layers.instance_norm(
@@ -711,7 +711,43 @@ def convert_elementwise_mul(
         tf_name = w_name + str(random.random())
 
     mul = keras.layers.Multiply(name=tf_name)
+    print(model0, model1)
     layers[scope_name] = mul([model0, model1])
+
+
+def convert_elementwise_div(
+    params, w_name, scope_name, inputs, layers, weights, names
+):
+    """
+    Convert elementwise multiplication.
+
+    Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        names: use short names for keras layers
+    """
+    print('Converting elementwise_div ...')
+
+    if names == 'short':
+        tf_name = 'D' + random_string(7)
+    elif names == 'keep':
+        tf_name = w_name
+    else:
+        tf_name = w_name + str(random.random())
+
+    def target_layer(x):
+        layer = tf.div(
+            x[0],
+            x[1]
+        )
+        return layer
+
+    lambda_layer = keras.layers.Lambda(target_layer, name=tf_name)
+    layers[scope_name] = lambda_layer([layers[inputs[0]], layers[inputs[1]]])
 
 
 def convert_elementwise_sub(
@@ -1176,12 +1212,13 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, names)
     """
     print('Converting constant ...')
 
-    params_list = params['value'].numpy().tolist()
+    params_list = params['value'].numpy()
 
-    def target_layer(x):
-        return tf.constant(params_list)
+    def target_layer(x, value=params_list):
+        return tf.constant(value.tolist(), shape=value.shape)
 
     lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name + '_np'] = params_list  # ad-hoc
     layers[scope_name] = lambda_layer(layers['input0'])  # Temporary fix for nonexistent input name created by converter.py
     # layers[scope_name] = params['value'].tolist()
 
@@ -1478,6 +1515,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::InstanceNormalization': convert_instancenorm,
     'onnx::Add': convert_elementwise_add,
     'onnx::Mul': convert_elementwise_mul,
+    'onnx::Div': convert_elementwise_div,
     'onnx::Sub': convert_elementwise_sub,
     'onnx::Sum': convert_sum,
     'onnx::Concat': convert_concat,
