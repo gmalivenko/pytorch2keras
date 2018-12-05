@@ -6,7 +6,7 @@
 [![Downloads](https://pepy.tech/badge/pytorch2keras)](https://pepy.tech/project/pytorch2keras)
 ![PyPI](https://img.shields.io/pypi/v/pytorch2keras.svg)
 
-PyTorch to Keras model convertor. 
+PyTorch to Keras model converter. 
 
 ## Installation
 
@@ -28,7 +28,7 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 
 ## PyTorch 0.4.1 and greater
 
-There are [some problem related to a new version](https://github.com/pytorch/pytorch/issues/13963):
+There is [the problem related to a new version](https://github.com/pytorch/pytorch/issues/13963):
 
 To make it work, please, cast all your `.view()` parameters to `int`. For example:
 
@@ -56,7 +56,7 @@ class ResNet(torchvision.models.resnet.ResNet):
 
 ## Tensorflow.js
 
-For the proper convertion to the tensorflow.js format, please use a new flag `names='short'`.
+For the proper conversion to a tensorflow.js format, please use the new flag `names='short'`.
 
 
 ## How to build the latest PyTorch
