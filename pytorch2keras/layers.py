@@ -97,7 +97,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
         n_groups = params['group']
         in_channels = channels_per_group * n_groups
 
-        if n_groups == in_channels:
+        if n_groups == in_channels and n_groups != 1:
             print(
                 'Perform depthwise convolution: h={} w={} in={} out={}'.format(
                     height, width, in_channels, out_channels
