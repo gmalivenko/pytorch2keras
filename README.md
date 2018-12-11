@@ -69,7 +69,8 @@ k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True, name
 2. Now you have Keras model. You can save it as h5 file and then convert it with `tensorflowjs_converter` but it doesn't work sometimes. As alternative, you may get Tensorflow Graph and save it as a frozen model:
 
 ```
-# Function below [copied from here](https://stackoverflow.com/questions/45466020/how-to-export-keras-h5-to-tensorflow-pb): 
+# Function below copied from here:
+# https://stackoverflow.com/questions/45466020/how-to-export-keras-h5-to-tensorflow-pb 
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
     """
     Freezes the state of a session into a pruned computation graph.
@@ -88,7 +89,8 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
     from tensorflow.python.framework.graph_util import convert_variables_to_constants
     graph = session.graph
     with graph.as_default():
-        freeze_var_names = list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
+        freeze_var_names = \
+            list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
         output_names = output_names or []
         output_names += [v.op.name for v in tf.global_variables()]
         input_graph_def = graph.as_graph_def()
