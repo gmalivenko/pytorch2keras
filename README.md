@@ -130,29 +130,21 @@ const WEIGHTS_URL = `model_tfjs/weights_manifest.json`;
 cont model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 ```
 
-## How to build the latest PyTorch
-
-Please, follow [this guide](https://github.com/pytorch/pytorch#from-source) to compile the latest version.
-
-Additional information for Arch Linux users:
-
-* the latest gcc8 is incompatible with actual nvcc version
-* the legacy gcc54 can't compile C/C++ modules because of compiler flags
-
 ## How to use
 
-It's the convertor of pytorch graph to a Keras (Tensorflow backend) graph.
+It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 
-Firstly, we need to load (or create) pytorch model:
+Firstly, we need to load (or create) a valid PyTorch model:
 
 ```
 class TestConv2d(nn.Module):
-    """Module for Conv2d convertion testing
+    """
+    Module for Conv2d testing
     """
 
     def __init__(self, inp=10, out=16, kernel_size=3):
         super(TestConv2d, self).__init__()
-        self.conv2d = nn.Conv2d(inp, out, stride=(inp % 3 + 1), kernel_size=kernel_size, bias=True)
+        self.conv2d = nn.Conv2d(inp, out, stride=1, kernel_size=kernel_size, bias=True)
 
     def forward(self, x):
         x = self.conv2d(x)
@@ -164,14 +156,14 @@ model = TestConv2d()
 # model.load_state_dict(torch.load(path_to_weights.pth))
 ```
 
-The next step - create a dummy variable with correct shapes:
+The next step - create a dummy variable with correct shape:
 
 ```
 input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
 input_var = Variable(torch.FloatTensor(input_np))
 ```
 
-We're using dummy-variable in order to trace the model.
+We use the dummy-variable to trace the model (with jit.trace):
 
 ```
 from converter import pytorch_to_keras
@@ -179,7 +171,7 @@ from converter import pytorch_to_keras
 k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
 ```
 
-You can also set H and W dimensions to None to make your model shape-agnostic:
+You can also set H and W dimensions to None to make your model shape-agnostic (e.g. fully convolutional netowrk):
 
 ```
 from converter import pytorch_to_keras
@@ -187,15 +179,16 @@ from converter import pytorch_to_keras
 k_model = pytorch_to_keras(model, input_var, [(10, None, None,)], verbose=True)  
 ```
 
-That's all! If all is ok, the Keras model is stores into the `k_model` variable.
+That's all! If all the modules have converted properly, the Keras model will be stored in the `k_model` variable.
+
 
 ## Supported layers
 
 Layers:
 
-* Linear
-* Conv2d (also with groups)
-* DepthwiseConv2d (with limited parameters)
+* Linear (Dense)
+* Conv2d (groups and dilations are also supported)
+* DepthwiseConv2d
 * Conv3d
 * ConvTranspose2d
 * MaxPool2d
@@ -228,13 +221,6 @@ Element-wise:
 * Multiplication
 * Subtraction
 
-Misc:
-
-* reduce sum ( .sum() method)
-
-## Unsupported parameters
-
-* Pooling: count_include_pad, dilation, ceil_mode
 
 ## Models converted with pytorch2keras
 
