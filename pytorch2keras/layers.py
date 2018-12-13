@@ -1,4 +1,5 @@
 import keras.layers
+import keras
 import numpy as np
 import random
 import string
