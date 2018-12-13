@@ -1,5 +1,4 @@
 import keras.layers
-import keras
 import numpy as np
 import random
 import string
@@ -1328,6 +1327,7 @@ def convert_adaptive_avg_pool2d(params, w_name, scope_name, inputs, layers, weig
     layers[scope_name] = global_pool(layers[inputs[0]])
 
     def target_layer(x):
+        import keras
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
@@ -1361,6 +1361,7 @@ def convert_adaptive_max_pool2d(params, w_name, scope_name, inputs, layers, weig
     layers[scope_name] = global_pool(layers[inputs[0]])
 
     def target_layer(x):
+        import keras
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
@@ -1451,6 +1452,7 @@ def convert_unsqueeze(params, w_name, scope_name, inputs, layers, weights, names
         tf_name = w_name + str(random.random())
 
     def target_layer(x):
+        import keras
         return keras.backend.expand_dims(x)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=tf_name + 'E')
