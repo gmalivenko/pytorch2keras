@@ -393,23 +393,44 @@ def convert_avgpool(params, w_name, scope_name, inputs, layers, weights, names):
     else:
         tf_name = w_name + str(random.random())
 
-    height, width = params['kernel_shape']
-    stride_height, stride_width = params['strides']
-    padding_h, padding_w, _, _ = params['pads']
+    if 'kernel_shape' in params:
+        height, width = params['kernel_shape']
+    else:
+        height, width = params['kernel_size']
+
+    if 'strides' in params:
+        stride_height, stride_width = params['strides']
+    else:
+        stride_height, stride_width = params['stride']
+
+    if 'pads' in params:
+        padding_h, padding_w, _, _ = params['pads']
+    else:
+        padding_h, padding_w = params['padding']
 
     input_name = inputs[0]
-    padding = 'valid'
-    if padding_h > 0 and padding_w > 0:
-        if padding_h == height // 2 and padding_w == width // 2:
-            padding = 'same'
-        else:
-            raise AssertionError('Custom padding isnt supported')
+    pad = 'valid' 
 
+    if height % 2 == 1 and width % 2 == 1 and \
+       height // 2 == padding_h and width // 2 == padding_w and \
+       stride_height == 1 and stride_width == 1:
+        pad = 'same'
+    else:
+        padding_name = tf_name + '_pad'
+        padding_layer = keras.layers.ZeroPadding2D(
+            padding=(padding_h, padding_w),
+            name=padding_name
+        )
+        layers[padding_name] = padding_layer(layers[inputs[0]])
+        input_name = padding_name
+
+    # Pooling type AveragePooling2D
     pooling = keras.layers.AveragePooling2D(
         pool_size=(height, width),
         strides=(stride_height, stride_width),
-        padding=padding,
-        name=tf_name
+        padding=pad,
+        name=tf_name,
+        data_format='channels_first'
     )
 
     layers[scope_name] = pooling(layers[input_name])
@@ -454,7 +475,13 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, names):
         padding_h, padding_w = params['padding']
 
     input_name = inputs[0]
-    if padding_h > 0 and padding_w > 0:
+    pad = 'valid' 
+
+    if height % 2 == 1 and width % 2 == 1 and \
+       height // 2 == padding_h and width // 2 == padding_w and \
+       stride_height == 1 and stride_width == 1:
+        pad = 'same'
+    else:
         padding_name = tf_name + '_pad'
         padding_layer = keras.layers.ZeroPadding2D(
             padding=(padding_h, padding_w),
@@ -463,12 +490,13 @@ def convert_maxpool(params, w_name, scope_name, inputs, layers, weights, names):
         layers[padding_name] = padding_layer(layers[inputs[0]])
         input_name = padding_name
 
-    # Pooling type
+    # Pooling type MaxPooling2D
     pooling = keras.layers.MaxPooling2D(
         pool_size=(height, width),
         strides=(stride_height, stride_width),
-        padding='valid',
-        name=tf_name
+        padding=pad,
+        name=tf_name,
+        data_format='channels_first'
     )
 
     layers[scope_name] = pooling(layers[input_name])
@@ -938,8 +966,13 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights, names):
     else:
         tf_name = w_name + str(random.random())
 
-    softmax = keras.layers.Activation('softmax', name=tf_name)
-    layers[scope_name] = softmax(layers[inputs[0]])
+    def target_layer(x, dim=params['dim']):
+        import keras
+        return keras.activations.softmax(x, axis=dim)
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
+
 
 
 def convert_tanh(params, w_name, scope_name, inputs, layers, weights, names):
@@ -1221,6 +1254,43 @@ def convert_constant(params, w_name, scope_name, inputs, layers, weights, names)
     layers[scope_name + '_np'] = params_list  # ad-hoc
     layers[scope_name] = lambda_layer(layers['input0'])  # Temporary fix for nonexistent input name created by converter.py
     # layers[scope_name] = params['value'].tolist()
+
+
+
+def convert_upsample_bilinear(params, w_name, scope_name, inputs, layers, weights, names):
+    """
+    Convert upsample_bilinear2d layer.
+
+   Args:
+        params: dictionary with layer parameters
+        w_name: name prefix in state_dict
+        scope_name: pytorch scope name
+        inputs: pytorch node inputs
+        layers: dictionary with keras tensors
+        weights: pytorch state_dict
+        names: use short names for keras layers
+    """
+    print('Converting upsample...')
+
+    if names == 'short':
+        tf_name = 'UPSL' + random_string(4)
+    elif names == 'keep':
+        tf_name = w_name
+    else:
+        tf_name = w_name + str(random.random())
+
+    output_size = params['output_size']
+    align_corners = params['align_corners'] > 0
+
+    def target_layer(x, size=output_size, align_corners=align_corners):
+        import tensorflow as tf
+        x = tf.transpose(x, [0, 2, 3, 1])
+        x = tf.image.resize_images(x, size, align_corners=align_corners)
+        x = tf.transpose(x, [0, 3, 1, 2])
+        return x
+
+    lambda_layer = keras.layers.Lambda(target_layer)
+    layers[scope_name] = lambda_layer(layers[inputs[0]])
 
 
 def convert_upsample(params, w_name, scope_name, inputs, layers, weights, names):
@@ -1511,7 +1581,9 @@ AVAILABLE_CONVERTERS = {
     'onnx::MaxPool': convert_maxpool,
     'max_pool2d': convert_maxpool,
     'aten::max_pool3d': convert_maxpool3,
+    'aten::max_pool2d_with_indices': convert_maxpool,
     'aten::max_pool2d': convert_maxpool,
+    'aten::avg_pool2d': convert_avgpool,
     'onnx::AveragePool': convert_avgpool,
     'onnx::Dropout': convert_dropout,
     'onnx::BatchNormalization': convert_batchnorm,
@@ -1526,6 +1598,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::LeakyRelu': convert_lrelu,
     'onnx::Sigmoid': convert_sigmoid,
     'onnx::Softmax': convert_softmax,
+    'aten::softmax': convert_softmax,
     'onnx::Tanh': convert_tanh,
     'aten::hardtanh': convert_hardtanh,
     'onnx::Selu': convert_selu,
@@ -1535,6 +1608,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Gather': convert_gather,
     'onnx::ReduceSum': convert_reduce_sum,
     'onnx::Constant': convert_constant,
+    'aten::upsample_bilinear2d': convert_upsample_bilinear,
     'onnx::Upsample': convert_upsample,
     'onnx::Pad': convert_padding,
     'onnx::GlobalAveragePool': convert_adaptive_avg_pool2d,
