@@ -287,7 +287,7 @@ def pytorch_to_keras(
         node_scope_name = node.scopeName()
         node_id = get_node_id(node)
         node_weights_name = '.'.join(
-            re.findall(r'\[([\w\d.]+)\]', node_scope_name)
+            re.findall(r'\[([\w\d.\-\[\]\s]+)\]', node_scope_name)
         )
         node_attrs = {k: node[k] for k in node.attributeNames()}
 
