@@ -178,6 +178,9 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
     else:  # 1D conv
         W = weights[weights_name].numpy().transpose(2, 1, 0)
         width, channels, n_filters = W.shape
+        n_groups = params['group']
+        if n_groups > 1:
+            raise AssertionError('Cannot convert conv1d with groups != 1')
 
         if bias_name in weights:
             biases = weights[bias_name].numpy()
@@ -200,14 +203,15 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
             weights = [W]
 
         conv = keras.layers.Conv1D(
-            filters=n_filters,
+            filters=channels,
             kernel_size=width,
-            strides=params['strides'][0],
+            strides=params['strides'],
             padding='valid',
             weights=weights,
             use_bias=has_bias,
             activation=None,
-            dilation_rate=params['dilations'][0],
+            data_format='channels_first',
+            dilation_rate=params['dilations'],
             bias_initializer='zeros', kernel_initializer='zeros',
             name=tf_name
         )
