@@ -240,6 +240,10 @@ def pytorch_to_keras(
     graph_outputs = [n.uniqueName() for n in trace.graph().outputs()]
     print('Graph outputs:', graph_outputs)
 
+
+    graph_inputs = [n.uniqueName() for n in trace.graph().inputs()]
+    print('Graph inputs:', graph_inputs)
+
     # Collect model state dict
     state_dict = _unique_state_dict(model)
     if verbose:
@@ -261,25 +265,32 @@ def pytorch_to_keras(
     outputs = []
 
     input_index = 0
-    model_inputs = dict()
+    model_inputs = ['input' + i for i in graph_inputs]
+
     for node in nodes:
         node_inputs = list(node.inputs())
+        # print(node_inputs, model_inputs)
         node_input_names = []
+        
         for node_input in node_inputs:
+            print(get_node_id(node_input.node()))
             if node_input.node().scopeName():
                 node_input_names.append(get_node_id(node_input.node()))
+            if 'input{0}'.format(get_node_id(node_input.node())) in model_inputs:
+                node_input_names.append('input{0}'.format(get_node_id(node_input.node())))
+        # print(node_input_names)
 
-        if len(node_input_names) == 0:
-            if len(node_inputs) > 0:
-                if node_inputs[0] in model_inputs:
-                    node_input_names.append(model_inputs[node_inputs[0]])
-                else:
-                    input_name = 'input{0}'.format(input_index)
-                    if input_name not in layers:
-                        continue
-                    node_input_names.append(input_name)
-                    input_index += 1
-                    model_inputs[node_inputs[0]] = input_name
+        # if len(node_input_names) == 0:
+        #     if len(node_inputs) > 0:
+        #         if node_inputs[0] in model_inputs:
+        #             node_input_names.append(model_inputs[node_inputs[0]])
+        #         else:
+        #             input_name = 'input{0}'.format(input_index)
+        #             if input_name not in layers:
+        #                 continue
+        #             node_input_names.append(input_name)
+        #             input_index += 1
+        #             model_inputs[node_inputs[0]] = input_name
 
         node_type = node.kind()
         # print(dir(node))
@@ -300,6 +311,7 @@ def pytorch_to_keras(
         if verbose:
             print(' ____ ')
             print('graph node:', node_scope_name)
+            print('node id:', node_id)
             print('type:', node_type)
             print('inputs:', node_input_names)
             print('outputs:', node_outputs_names)
