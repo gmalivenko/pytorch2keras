@@ -738,9 +738,15 @@ def convert_elementwise_mul(
     else:
         tf_name = w_name + str(random.random())
 
-    mul = keras.layers.Multiply(name=tf_name)
-    print(model0, model1)
-    layers[scope_name] = mul([model0, model1])
+    def target_layer(x):
+        layer = tf.multiply(
+            x[0],
+            x[1]
+        )
+        return layer
+
+    lambda_layer = keras.layers.Lambda(target_layer, name=tf_name)
+    layers[scope_name] = lambda_layer([layers[inputs[0]], layers[inputs[1]]])
 
 
 def convert_elementwise_div(
