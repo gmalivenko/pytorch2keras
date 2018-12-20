@@ -18,7 +18,6 @@ class LayerTest(nn.Module):
 class FTest(nn.Module):
     def __init__(self, negative_slope):
         super(FTest, self).__init__()
-        self.relu = nn.ReLU()
         self.negative_slope = negative_slope
 
     def forward(self, x):

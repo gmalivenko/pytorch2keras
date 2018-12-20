@@ -18,7 +18,6 @@ class LayerTest(nn.Module):
 class FTest(nn.Module):
     def __init__(self):
         super(FTest, self).__init__()
-        self.relu = nn.ReLU()
 
     def forward(self, x):
         from torch.nn import functional as F
