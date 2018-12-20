@@ -98,12 +98,6 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
         in_channels = channels_per_group * n_groups
 
         if n_groups == in_channels and n_groups != 1:
-            print(
-                'Perform depthwise convolution: h={} w={} in={} out={}'.format(
-                    height, width, in_channels, out_channels
-                )
-            )
-
             if bias_name in weights:
                 biases = weights[bias_name].numpy()
                 has_bias = True
@@ -666,6 +660,9 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
 
     assert(len(inputs) == 3)
 
+    # Use previously taken constants
+    assert(inputs[-2] + '_np' in layers)
+    assert(inputs[-1] + '_np' in layers)
     gamma = layers[inputs[-2] + '_np']
     beta = layers[inputs[-1] + '_np']
 
@@ -698,18 +695,36 @@ def convert_elementwise_add(
         names: use short names for keras layers
     """
     print('Converting elementwise_add ...')
-    model0 = layers[inputs[0]]
-    model1 = layers[inputs[1]]
+    if 'broadcast' in params:
+        model0 = layers[inputs[0]]
+        model1 = layers[inputs[1]]
 
-    if names == 'short':
-        tf_name = 'A' + random_string(7)
-    elif names == 'keep':
-        tf_name = w_name
+        if names == 'short':
+            tf_name = 'A' + random_string(7)
+        elif names == 'keep':
+            tf_name = w_name
+        else:
+            tf_name = w_name + str(random.random())
+
+        def target_layer(x):
+            layer = tf.add(x[0], x[1])
+            return layer
+
+        lambda_layer = keras.layers.Lambda(target_layer, name=tf_name)
+        layers[scope_name] = lambda_layer([layers[inputs[0]], layers[inputs[1]]])
     else:
-        tf_name = w_name + str(random.random())
+        model0 = layers[inputs[0]]
+        model1 = layers[inputs[1]]
 
-    add = keras.layers.Add(name=tf_name)
-    layers[scope_name] = add([model0, model1])
+        if names == 'short':
+            tf_name = 'A' + random_string(7)
+        elif names == 'keep':
+            tf_name = w_name
+        else:
+            tf_name = w_name + str(random.random())
+
+        add = keras.layers.Add(name=tf_name)
+        layers[scope_name] = add([model0, model1])
 
 
 def convert_elementwise_mul(
@@ -875,7 +890,7 @@ def convert_relu(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert relu layer.
 
-   Args:
+    Args:
         params: dictionary with layer parameters
         w_name: name prefix in state_dict
         scope_name: pytorch scope name
@@ -928,7 +943,7 @@ def convert_sigmoid(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert sigmoid layer.
 
-   Args:
+    Args:
         params: dictionary with layer parameters
         w_name: name prefix in state_dict
         scope_name: pytorch scope name
@@ -954,7 +969,7 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights, names):
     """
     Convert softmax layer.
 
-   Args:
+    Args:
         params: dictionary with layer parameters
         w_name: name prefix in state_dict
         scope_name: pytorch scope name
