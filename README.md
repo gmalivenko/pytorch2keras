@@ -204,42 +204,42 @@ Options:
 
 ## Supported layers
 
-Layers:
+* Activations:
+    + ReLU
+    + LeakyReLU
+    + SELU
+    + Sigmoid
+    + Softmax
+    + Tanh
+    + HardTanh
 
-* Linear (Dense)
-* Conv2d (groups and dilations are also supported)
-* DepthwiseConv2d
-* Conv3d
-* ConvTranspose2d
-* MaxPool2d
-* MaxPool3d
-* AvgPool2d
-* Global average pooling (as special case of AdaptiveAvgPool2d)
+* Constants
+
+* Convolutions:
+    + Conv1d
+    + Conv2d
+    + ConvTrsnpose2d
+
+* Element-wise:
+    + Add
+    + Mul
+    + Sub
+    + Div
+
 * Embedding
-* UpsamplingNearest2d
-* BatchNorm2d
-* InstanceNorm2d
 
-Reshape:
+* Linear
 
-* View
-* Reshape
-* Transpose
+* Normalizations:
+    + BatchNorm2d
+    + InstanceNorm2d
+    + Dropout
 
-Activations:
-
-* ReLU
-* LeakyReLU
-* Tanh
-* HardTanh (clamp)
-* Softmax
-* Sigmoid
-
-Element-wise:
-
-* Addition
-* Multiplication
-* Subtraction
+* Poolings:
+    + MaxPool2d
+    + AvgPool2d
+    + Global MaxPool2d (adaptive pooling to shape [1, 1])
+    + Global AvgPool2d (adaptive pooling to shape [1, 1])
 
 
 ## Models converted with pytorch2keras
