@@ -49,4 +49,4 @@ if __name__ == '__main__':
                     if max_error < error:
                         max_error = error
 
-            print('Max error: {0}'.format(max_error))
+    print('Max error: {0}'.format(max_error))
