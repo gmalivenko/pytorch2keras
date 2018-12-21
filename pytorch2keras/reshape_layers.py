@@ -47,12 +47,11 @@ def convert_transpose(params, w_name, scope_name, inputs, layers, weights, names
     """
     print('Converting transpose ...')
     if params['perm'][0] != 0:
-        # raise AssertionError('Cannot permute batch dimension')
-        print('!!! Cannot permute batch dimension. Result may be wrong !!!')
-        # try:
-        layers[scope_name] = layers[inputs[0]]
-        # except:
-        #     pass
+        if inputs[0] in layers:
+            print('!!! Cannot permute batch dimension. Result may be wrong !!!')
+            layers[scope_name] = layers[inputs[0]]
+        else:
+            print('Skip weight matrix transpose, result may be wrong.')
     else:
         if names:
             tf_name = 'PERM' + random_string(4)
@@ -95,9 +94,11 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, names):
 
         # layers[scope_name] = reshape(layers[inputs[0]])
     else:
-        reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
-        layers[scope_name] = reshape(layers[inputs[0]])
-
+        if inputs[0] in layers:
+            reshape = keras.layers.Reshape(params['shape'][1:], name=tf_name)
+            layers[scope_name] = reshape(layers[inputs[0]])
+        else:
+            print('Skip weight matrix transpose, but result may be wrong.')
 
 def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, names):
     """
