@@ -241,6 +241,11 @@ Options:
     + Global MaxPool2d (adaptive pooling to shape [1, 1])
     + Global AvgPool2d (adaptive pooling to shape [1, 1])
 
+* Not tested yet:
+    + Upsampling
+    + Padding
+    + Reshape
+
 
 ## Models converted with pytorch2keras
 
