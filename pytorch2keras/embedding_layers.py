@@ -39,4 +39,4 @@ def convert_gather(params, w_name, scope_name, inputs, layers, weights, names):
         input_channels,
         weights=keras_weights, output_dim=output_channels, name=tf_name
     )
-    layers[scope_name] = dense(layers[inputs[0]])
+    layers[scope_name] = dense(layers[inputs[1]])

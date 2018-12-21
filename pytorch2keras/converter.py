@@ -273,11 +273,10 @@ def pytorch_to_keras(
         node_input_names = []
         
         for node_input in node_inputs:
-            print(get_node_id(node_input.node()))
             if node_input.node().scopeName():
                 node_input_names.append(get_node_id(node_input.node()))
             if 'input{0}'.format(get_node_id(node_input.node())) in model_inputs:
-                node_input_names.append('input{0}'.format(get_node_id(node_input.node())))
+                node_input_names.append('input{0}'.format(node_input.uniqueName()))
         # print(node_input_names)
 
         # if len(node_input_names) == 0:
