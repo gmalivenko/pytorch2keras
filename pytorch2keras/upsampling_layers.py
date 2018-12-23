@@ -44,7 +44,7 @@ def convert_upsample_bilinear(params, w_name, scope_name, inputs, layers, weight
 
 def convert_upsample(params, w_name, scope_name, inputs, layers, weights, names):
     """
-    Convert upsample_bilinear2d layer.
+    Convert nearest upsampling layer.
 
     Args:
         params: dictionary with layer parameters
