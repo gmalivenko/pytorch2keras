@@ -87,6 +87,7 @@ def convert_reshape(params, w_name, scope_name, inputs, layers, weights, names):
             print('Cannot deduct batch size! It will be omitted, but result may be wrong.')
 
         def target_layer(x, shape=layers[inputs[1]]):
+            import tensorflow as tf
             return tf.reshape(x, shape)
 
         lambda_layer = keras.layers.Lambda(target_layer)
@@ -119,6 +120,7 @@ def convert_squeeze(params, w_name, scope_name, inputs, layers, weights, names):
         raise AssertionError('Cannot convert squeeze by multiple dimensions')
 
     def target_layer(x, axis=int(params['axes'][0])):
+        import tensorflow as tf
         return tf.squeeze(x, axis=axis)
 
     lambda_layer = keras.layers.Lambda(target_layer)
@@ -171,6 +173,7 @@ def convert_shape(params, w_name, scope_name, inputs, layers, weights, names):
     print('Converting shape ...')
 
     def target_layer(x):
+        import tensorflow as tf
         return tf.shape(x)
 
     lambda_layer = keras.layers.Lambda(target_layer)
