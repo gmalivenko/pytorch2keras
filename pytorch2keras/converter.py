@@ -135,15 +135,22 @@ else:
 
 def get_node_id(node):
     import re
-    try:
-        node_id = re.search(r"\%[\d\w]+", node.__str__())
-        int(node_id.group(0)[1:])
-        return node_id.group(0)[1:]
-    except AttributeError:
-        return '0'
-    except ValueError:
-        return '0'
+    node_id = re.search(r"[\d]+", node.__str__())
+    return node_id.group(0)
 
+
+def get_leaf_id(node, state={}):
+    import re
+    try:
+        node_id = re.search(r"[\d\w]+ defined in", node.__str__())
+        int(node_id.group(0)[:-11])
+        return node_id.group(0)[:-11]
+    except:
+        if node_id.group(0)[:-11] in state:
+            return state[node_id.group(0)[:-11]]
+        else:
+            state[node_id.group(0)[:-11]] = str(len(state.keys()))
+            return str(state[node_id.group(0)[:-11]])
 
 def pytorch_to_keras(
     model, args, input_shapes,
@@ -237,9 +244,10 @@ def pytorch_to_keras(
             s = -1
 
     # Collect graph inputs and outputs
-    graph_outputs = [get_node_id(n) for n in trace.graph().outputs()]
-    graph_inputs = [get_node_id(n) for n in trace.graph().inputs()]
-    
+    graph_outputs = [get_leaf_id(n) for n in trace.graph().outputs()]
+    graph_inputs = [get_leaf_id(n) for n in trace.graph().inputs()]
+    for i in trace.graph().inputs():
+        print(i)
     # Collect model state dict
     state_dict = _unique_state_dict(model)
     if verbose:
@@ -272,10 +280,10 @@ def pytorch_to_keras(
         node_input_names = []
         
         for node_input in node_inputs:
-            if 'input{0}'.format(get_node_id(node_input.node())) in model_inputs:
-                node_input_names.append('input{0}'.format(get_node_id(node_input.node())))
+            if 'input{0}'.format(get_leaf_id(node_input)) in model_inputs:
+                node_input_names.append('input{0}'.format(get_leaf_id(node_input)))
             else:
-                node_input_names.append(get_node_id(node_input.node()))
+                node_input_names.append(get_leaf_id(node_input))
 
         node_type = node.kind()
 
