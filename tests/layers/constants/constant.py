@@ -10,7 +10,7 @@ class FTest(nn.Module):
         super(FTest, self).__init__()
 
     def forward(self, x):
-        return x + 1
+        return x + torch.FloatTensor([1.0])
 
 
 def check_error(output, k_model, input_np, epsilon=1e-5):
