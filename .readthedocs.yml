@@ -1,0 +1,11 @@
+# .readthedocs.yml
+
+build:
+  image: latest
+
+python:
+  version: 3.6
+  setup_py_install: true
+
+# Don't build any extra formats
+formats: []
