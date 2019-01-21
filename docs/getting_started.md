@@ -4,48 +4,48 @@ It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 
 Firstly, we need to load (or create) a valid PyTorch model:
 
-    ```
-    class TestConv2d(nn.Module):
-        """
-        Module for Conv2d testing
-        """
+```
+class TestConv2d(nn.Module):
+    """
+    Module for Conv2d testing
+    """
 
-        def __init__(self, inp=10, out=16, kernel_size=3):
-            super(TestConv2d, self).__init__()
-            self.conv2d = nn.Conv2d(inp, out, stride=1, kernel_size=kernel_size, bias=True)
+    def __init__(self, inp=10, out=16, kernel_size=3):
+        super(TestConv2d, self).__init__()
+        self.conv2d = nn.Conv2d(inp, out, stride=1, kernel_size=kernel_size, bias=True)
 
-        def forward(self, x):
-            x = self.conv2d(x)
-            return x
+    def forward(self, x):
+        x = self.conv2d(x)
+        return x
 
-    model = TestConv2d()
+model = TestConv2d()
 
-    # load weights here
-    # model.load_state_dict(torch.load(path_to_weights.pth))
-    ```
+# load weights here
+# model.load_state_dict(torch.load(path_to_weights.pth))
+```
 
 The next step - create a dummy variable with correct shape:
 
-    ```
-    input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
-    input_var = Variable(torch.FloatTensor(input_np))
-    ```
+```
+input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
+input_var = Variable(torch.FloatTensor(input_np))
+```
 
 We use the dummy-variable to trace the model (with jit.trace):
 
-    ```
-    from converter import pytorch_to_keras
-    # we should specify shape of the input tensor
-    k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
-    ```
+```
+from converter import pytorch_to_keras
+# we should specify shape of the input tensor
+k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
+```
 
 You can also set H and W dimensions to None to make your model shape-agnostic (e.g. fully convolutional netowrk):
 
-    ```
-    from converter import pytorch_to_keras
-    # we should specify shape of the input tensor
-    k_model = pytorch_to_keras(model, input_var, [(10, None, None,)], verbose=True)  
-    ```
+```
+from converter import pytorch_to_keras
+# we should specify shape of the input tensor
+k_model = pytorch_to_keras(model, input_var, [(10, None, None,)], verbose=True)  
+```
 
 That's all! If all the modules have converted properly, the Keras model will be stored in the `k_model` variable.
 
@@ -63,7 +63,6 @@ Here is a short instruction how to get a tensorflow.js model:
 
 2. Now you have Keras model. You can save it as h5 file and then convert it with `tensorflowjs_converter` but it doesn't work sometimes. As alternative, you may get Tensorflow Graph and save it as a frozen model:
     
-        ```
         # Function below copied from here:
         # https://stackoverflow.com/questions/45466020/how-to-export-keras-h5-to-tensorflow-pb 
         def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
@@ -103,22 +102,21 @@ Here is a short instruction how to get a tensorflow.js model:
 
         tf.train.write_graph(frozen_graph, ".", "my_model.pb", as_text=False)
         print([i for i in k_model.outputs])
-        ```
 
 3. You will see the output layer name, so, now it's time to convert `my_model.pb` to tfjs model:
 
-        ```
-        tensorflowjs_converter  \
-            --input_format=tf_frozen_model \
-            --output_node_names='TANHTObs/Tanh' \
-            my_model.pb \
-            model_tfjs
-        ```
+    ```
+    tensorflowjs_converter  \
+        --input_format=tf_frozen_model \
+        --output_node_names='TANHTObs/Tanh' \
+        my_model.pb \
+        model_tfjs
+    ```
 
 4. Thats all!
 
-        ```
-        const MODEL_URL = `model_tfjs/tensorflowjs_model.pb`;
-        const WEIGHTS_URL = `model_tfjs/weights_manifest.json`;
-        cont model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
-        ```
+    ```
+    const MODEL_URL = `model_tfjs/tensorflowjs_model.pb`;
+    const WEIGHTS_URL = `model_tfjs/weights_manifest.json`;
+    cont model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
+    ```

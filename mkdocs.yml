@@ -7,4 +7,5 @@ pages:
 - Getting started: getting_started.md
 - Supported layers and models: supported_layers_and_models.md
 - API: api.md
+- Known problems: known_problems.md
 - License: license.md
