@@ -1,4 +1,4 @@
-# Supported layers
+## Supported layers
 
 * Activations:
     + ReLU
@@ -43,7 +43,7 @@
     + Reshape
 
 
-# Models converted with pytorch2keras
+## Models converted with pytorch2keras
 
 * ResNet*
 * VGG*

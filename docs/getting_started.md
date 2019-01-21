@@ -1,4 +1,4 @@
-# Basic usage
+## Basic usage
 
 It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 
@@ -49,7 +49,7 @@ You can also set H and W dimensions to None to make your model shape-agnostic (e
 
 That's all! If all the modules have converted properly, the Keras model will be stored in the `k_model` variable.
 
-# Tensorflow.js
+## Tensorflow.js
 
 For the proper conversion to a tensorflow.js format, please use the new flag `names='short'`.
 
