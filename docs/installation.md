@@ -1,6 +1,3 @@
-# Installation
-
-
 To install ready-to-use package, you may use PIP:
 
 ```
