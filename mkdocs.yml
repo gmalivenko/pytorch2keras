@@ -1,1 +1,10 @@
 site_name: pytorch2keras documentation
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - Getting started: getting_started.md
+    - Supported layers and models: supported_layers_and_models.md
+    - API: api.md
+    - License: license.md
+
+theme: readthedocs
