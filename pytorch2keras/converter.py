@@ -140,17 +140,8 @@ def get_node_id(node):
 
 
 def get_leaf_id(node, state={}):
-    import re
-    try:
-        node_id = re.search(r"[\d\w]+ defined in", node.__str__())
-        int(node_id.group(0)[:-11])
-        return node_id.group(0)[:-11]
-    except:
-        if node_id.group(0)[:-11] in state:
-            return state[node_id.group(0)[:-11]]
-        else:
-            state[node_id.group(0)[:-11]] = str(len(state.keys()))
-            return str(state[node_id.group(0)[:-11]])
+    return str(node.uniqueName())
+
 
 def pytorch_to_keras(
     model, args, input_shapes,
@@ -246,8 +237,7 @@ def pytorch_to_keras(
     # Collect graph inputs and outputs
     graph_outputs = [get_leaf_id(n) for n in trace.graph().outputs()]
     graph_inputs = [get_leaf_id(n) for n in trace.graph().inputs()]
-    for i in trace.graph().inputs():
-        print(i)
+
     # Collect model state dict
     state_dict = _unique_state_dict(model)
     if verbose:
@@ -263,27 +253,20 @@ def pytorch_to_keras(
     layers = dict()
     keras_inputs = []
     for i in range(len(args)):
-        layers['input{0}'.format(i)] = keras.layers.InputLayer(
+        layers[graph_inputs[i]] = keras.layers.InputLayer(
             input_shape=input_shapes[i], name='input{0}'.format(i)
         ).output
-        keras_inputs.append(layers['input{0}'.format(i)])
+        keras_inputs.append(layers[graph_inputs[i]])
 
     outputs = []
-
-    input_index = 0
-    model_inputs = ['input' + i for i in graph_inputs]
-
     group_indices = defaultdict(lambda: 0, {})
 
     for node in nodes:
         node_inputs = list(node.inputs())
         node_input_names = []
-        
+
         for node_input in node_inputs:
-            if 'input{0}'.format(get_leaf_id(node_input)) in model_inputs:
-                node_input_names.append('input{0}'.format(get_leaf_id(node_input)))
-            else:
-                node_input_names.append(get_leaf_id(node_input))
+            node_input_names.append(get_leaf_id(node_input))
 
         node_type = node.kind()
 
