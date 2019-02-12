@@ -5,6 +5,7 @@ The PyTorch2Keras converter module over JIT-trace.
 import contextlib
 from packaging import version
 from collections import defaultdict
+import six
 
 import torch
 import torch.jit
@@ -207,32 +208,33 @@ def pytorch_to_keras(
     # %529 : Float(1, 512) = onnx::Reshape(%522, %536), scope: ResNet
     #
     # It's better to replace it with onnx::Flatten
-    from types import SimpleNamespace
-    seq_to_find = \
-        ['onnx::Constant', 'onnx::Shape', 'onnx::Gather',
-         'onnx::Constant', 'onnx::Unsqueeze', 'onnx::Unsqueeze', 'onnx::Concat', 'onnx::Reshape']
-    k = 0
-    s = 0
-    for i, node in enumerate(nodes):
-        if node.kind() == seq_to_find[k]:
-            if k == 0:
-                s = i
-            k += 1
-            if k == len(seq_to_find):
-                reshape_op = nodes[s + k - 1]
-                flatten_op = {
-                    'kind': (lambda: 'onnx::Flatten'),
-                    'attributeNames': (lambda: {}),
-                    'outputs':  (lambda: list(reshape_op.outputs())),
-                    'scopeName': (lambda: reshape_op.scopeName()),
-                    'inputs': (lambda: list(reshape_op.inputs())[:1]),
-                    '__str__': (lambda: reshape_op.__str__()),
-                }
-                nodes = nodes[:s] + [SimpleNamespace(**flatten_op)] + nodes[s+k:]
-                break
-        else:
-            k = 0
-            s = -1
+    if six.PY3:
+        from types import SimpleNamespace
+        seq_to_find = \
+            ['onnx::Constant', 'onnx::Shape', 'onnx::Gather',
+             'onnx::Constant', 'onnx::Unsqueeze', 'onnx::Unsqueeze', 'onnx::Concat', 'onnx::Reshape']
+        k = 0
+        s = 0
+        for i, node in enumerate(nodes):
+            if node.kind() == seq_to_find[k]:
+                if k == 0:
+                    s = i
+                k += 1
+                if k == len(seq_to_find):
+                    reshape_op = nodes[s + k - 1]
+                    flatten_op = {
+                        'kind': (lambda: 'onnx::Flatten'),
+                        'attributeNames': (lambda: {}),
+                        'outputs':  (lambda: list(reshape_op.outputs())),
+                        'scopeName': (lambda: reshape_op.scopeName()),
+                        'inputs': (lambda: list(reshape_op.inputs())[:1]),
+                        '__str__': (lambda: reshape_op.__str__()),
+                    }
+                    nodes = nodes[:s] + [SimpleNamespace(**flatten_op)] + nodes[s+k:]
+                    break
+            else:
+                k = 0
+                s = -1
 
     # Collect graph inputs and outputs
     graph_outputs = [get_leaf_id(n) for n in trace.graph().outputs()]
