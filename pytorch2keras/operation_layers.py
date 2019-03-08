@@ -140,6 +140,7 @@ def convert_clip(params, w_name, scope_name, inputs, layers, weights, names):
     print('Converting clip ...')
 
     def target_layer(x, vmin=params['min'], vmax=params['max']):
+        import tensorflow as tf
         return tf.clip_by_value(x, vmin, vmax)
 
     lambda_layer = keras.layers.Lambda(target_layer)
