@@ -67,7 +67,11 @@ def convert_upsample(params, w_name, scope_name, inputs, layers, weights, names)
     else:
         tf_name = w_name + str(random.random())
 
-    scale = (params['height_scale'], params['width_scale'])
+    if 'height_scale' in params:
+        scale = (params['height_scale'], params['width_scale'])
+    elif len(inputs) == 2:
+        scale = layers[inputs[-1] + '_np'][-2:]
+
     upsampling = keras.layers.UpSampling2D(
         size=scale, name=tf_name
     )

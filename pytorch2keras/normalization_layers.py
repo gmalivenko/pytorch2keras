@@ -85,11 +85,19 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
 
     assert(len(inputs) == 3)
 
+    bias_name = '{0}.bias'.format(w_name)
+    weights_name = '{0}.weight'.format(w_name)
+
     # Use previously taken constants
-    assert(inputs[-2] + '_np' in layers)
-    assert(inputs[-1] + '_np' in layers)
-    gamma = layers[inputs[-2] + '_np']
-    beta = layers[inputs[-1] + '_np']
+    if inputs[-2] + '_np' in layers:
+        gamma = layers[inputs[-2] + '_np']
+    else:
+        gamma = weights[weights_name].numpy()
+
+    if inputs[-1] + '_np' in layers:
+        beta = layers[inputs[-1] + '_np']
+    else:
+        beta = weights[bias_name].numpy()
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
         layer = tf.contrib.layers.instance_norm(
