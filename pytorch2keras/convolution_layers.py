@@ -112,6 +112,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
                 activation=None,
                 depth_multiplier=1,
                 weights = weights,
+                dilation_rate=params['dilations'][0],
                 bias_initializer='zeros', kernel_initializer='zeros'
             )
             layers[scope_name] = conv(layers[input_name])
