@@ -139,9 +139,13 @@ def convert_clip(params, w_name, scope_name, inputs, layers, weights, names):
     """
     print('Converting clip ...')
 
-    def target_layer(x, vmin=params['min'], vmax=params['max']):
-        import tensorflow as tf
-        return tf.clip_by_value(x, vmin, vmax)
+    if params['min'] == 0:
+        print("using ReLU({0})".format(params['max']))
+        layer = keras.layers.ReLU(max_value=params['max'])
+    else:
+        def target_layer(x, vmin=params['min'], vmax=params['max']):
+            import tensorflow as tf
+            return tf.clip_by_value(x, vmin, vmax)
+        layer = keras.layers.Lambda(target_layer)
 
-    lambda_layer = keras.layers.Lambda(target_layer)
-    layers[scope_name] = lambda_layer(layers[inputs[0]])
+    layers[scope_name] = layer(layers[inputs[0]])
