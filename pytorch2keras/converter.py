@@ -39,7 +39,7 @@ def set_training(model, mode):
             model.train(old_mode)
 
 
-if version.parse('0.4.1') < version.parse(torch.__version__):
+if version.parse('1.0.0') <= version.parse(torch.__version__):
     from torch._C import ListType
 
     # ONNX can't handle constants that are lists of tensors, which can
@@ -60,7 +60,7 @@ if version.parse('0.4.1') < version.parse(torch.__version__):
                           .setType(ListType.ofTensors()))
                     node.output().replaceAllUsesWith(lc)
 
-if version.parse('0.4.0') >= version.parse(torch.__version__):
+if version.parse('1.0.0') > version.parse(torch.__version__):
     def _optimize_graph(graph, aten):
         # run dce first to eliminate dead parts of the graph that might have been
         # left behind by things like symbolic_override
@@ -80,7 +80,7 @@ if version.parse('0.4.0') >= version.parse(torch.__version__):
         return graph
 else:
     def _optimize_graph(graph, operator_export_type=OperatorExportTypes.RAW):
-        if version.parse('0.4.1') < version.parse(torch.__version__):
+        if version.parse('1.0.0') <= version.parse(torch.__version__):
             torch._C._jit_pass_remove_inplace_ops(graph)
             # we record now record some ops like ones/zeros
             # into a trace where we previously recorded constants
