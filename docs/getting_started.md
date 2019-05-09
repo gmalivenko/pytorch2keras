@@ -5,6 +5,9 @@ It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 Firstly, we need to load (or create) a valid PyTorch model:
 
 ```
+import torch
+import torch.nn as nn
+
 class TestConv2d(nn.Module):
     """
     Module for Conv2d testing
@@ -27,6 +30,9 @@ model = TestConv2d()
 The next step - create a dummy variable with correct shape:
 
 ```
+from torch.autograd import Variable
+import numpy as np
+
 input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
 input_var = Variable(torch.FloatTensor(input_np))
 ```
