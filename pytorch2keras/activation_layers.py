@@ -107,7 +107,15 @@ def convert_softmax(params, w_name, scope_name, inputs, layers, weights, names):
     else:
         tf_name = w_name + str(random.random())
 
-    def target_layer(x, dim=params['dim']):
+    if 'axis' in params:
+        axis = params['axis']
+    if 'value' in params:
+        axis = params['value'].item()
+    else:
+        if len(inputs) > 1:
+            axis = layers[inputs[1] + '_np']
+
+    def target_layer(x, dim=axis):
         import keras
         return keras.activations.softmax(x, axis=dim)
 
