@@ -245,10 +245,10 @@ def convert_convtranspose(params, w_name, scope_name, inputs, layers, weights, n
 
         n_groups = params['group']
         if n_groups > 1:
-            raise AssertionError('Cannot convert conv1d with groups != 1')
+            raise AssertionError('Cannot convert convtranspose with groups != 1')
 
         if params['dilations'][0] > 1:
-            raise AssertionError('Cannot convert conv1d with dilation_rate != 1')
+            raise AssertionError('Cannot convert convtranspose with dilation_rate != 1')
 
         if bias_name in weights:
             biases = weights[bias_name].numpy()
