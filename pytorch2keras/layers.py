@@ -11,7 +11,7 @@ from .reshape_layers import convert_flatten, convert_transpose, convert_reshape,
 from .elementwise_layers import convert_elementwise_add, convert_elementwise_mul, \
     convert_elementwise_div, convert_elementwise_sub
 from .activation_layers import convert_relu, convert_lrelu, convert_selu, \
-    convert_softmax, convert_sigmoid, convert_tanh, convert_hardtanh
+    convert_softmax, convert_sigmoid, convert_tanh, convert_hardtanh, convert_elu
 from .pooling_layers import convert_avgpool, convert_maxpool, convert_maxpool3, \
     convert_adaptive_avg_pool2d, convert_adaptive_max_pool2d
 from .normalization_layers import convert_batchnorm, convert_instancenorm, convert_dropout
@@ -45,6 +45,7 @@ AVAILABLE_CONVERTERS = {
     'onnx::Sub': convert_elementwise_sub,
     'onnx::Sum': convert_sum,
     'onnx::Concat': convert_concat,
+    'onnx::Elu': convert_elu,
     'onnx::Relu': convert_relu,
     'onnx::LeakyRelu': convert_lrelu,
     'onnx::Sigmoid': convert_sigmoid,
