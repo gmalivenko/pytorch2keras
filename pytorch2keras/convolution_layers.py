@@ -133,7 +133,7 @@ def convert_conv(params, w_name, scope_name, inputs, layers, weights, names):
                     return tf.nn.conv2d(i, k, strides=[1, stride_y, stride_x, 1], padding='VALID')
 
                 input_groups = tf.split(axis=3, num_or_size_splits=groups, value=x)
-                weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=W.transpose(0, 1, 2, 3))
+                weight_groups = tf.split(axis=3, num_or_size_splits=groups, value=np.array(W, dtype=np.float32).transpose(0, 1, 2, 3))
                 output_groups = [convolve_lambda(i, k) for i, k in zip(input_groups, weight_groups)]
 
                 layer = tf.concat(axis=3, values=output_groups)
