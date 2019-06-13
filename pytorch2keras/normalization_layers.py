@@ -101,10 +101,13 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
         import tensorflow as tf
+        from keras import backend as K
+        data_format = 'NCHW' if K.image_data_format() == 'channels_first' else 'NHWC'
+        
         layer = tf.contrib.layers.instance_norm(
             x,
             param_initializers={'beta': tf.constant_initializer(beta), 'gamma': tf.constant_initializer(gamma)},
-            epsilon=epsilon, data_format='NCHW',
+            epsilon=epsilon, data_format=data_format,
             trainable=False
         )
         return layer
