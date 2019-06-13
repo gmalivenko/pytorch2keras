@@ -8,7 +8,7 @@
 [![Readthedocs](https://img.shields.io/readthedocs/pytorch2keras.svg)](https://pytorch2keras.readthedocs.io/en/latest/)
 
 
-PyTorch to Keras model converter. With support for ELU Activation Layer.
+PyTorch to Keras model converter.
 
 ## Installation
 
