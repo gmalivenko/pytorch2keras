@@ -100,6 +100,7 @@ def convert_instancenorm(params, w_name, scope_name, inputs, layers, weights, na
         beta = weights[bias_name].numpy()
 
     def target_layer(x, epsilon=params['epsilon'], gamma=gamma, beta=beta):
+        import tensorflow as tf
         layer = tf.contrib.layers.instance_norm(
             x,
             param_initializers={'beta': tf.constant_initializer(beta), 'gamma': tf.constant_initializer(gamma)},
