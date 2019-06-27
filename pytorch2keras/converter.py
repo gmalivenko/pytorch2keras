@@ -11,7 +11,7 @@ import logging
 
 def pytorch_to_keras(
     model, args, input_shapes=None,
-    change_ordering=False, verbose=False, names=None,
+    change_ordering=False, verbose=False, name_policy=None,
 ):
     """
     By given PyTorch model convert layers with ONNX.
@@ -22,7 +22,7 @@ def pytorch_to_keras(
         input_shapes: keras input shapes (using for each InputLayer)
         change_ordering: change CHW to HWC
         verbose: verbose output
-        names: use short names, use random-suffix or keep original names for keras layers
+        name_policy: use short names, use random-suffix or keep original names for keras layers
 
     Returns:
         model: created keras model.
@@ -35,11 +35,14 @@ def pytorch_to_keras(
 
     logger.info('Converter is called.')
 
-    if names:
+    if name_policy:
         logger.warning('Name policy isn\'t supported now.')
 
     if input_shapes:
         logger.warning('Custom shapes isn\'t supported now.')
+
+    if not isinstance(input_shapes, list):
+        input_shapes = [input_shapes]
 
     if not isinstance(args, list):
         args = [args]
@@ -65,6 +68,8 @@ def pytorch_to_keras(
 
     stream.seek(0)
     onnx_model = onnx.load(stream)
-    k_model = onnx_to_keras(onnx_model, input_names, verbose=verbose, change_ordering=change_ordering)
+    k_model = onnx_to_keras(onnx_model=onnx_model, input_names=input_names,
+                            input_shapes=input_shapes, name_policy=name_policy,
+                            verbose=verbose, change_ordering=change_ordering)
 
     return k_model
