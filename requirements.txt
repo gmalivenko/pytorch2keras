@@ -3,4 +3,5 @@ tensorflow
 numpy 
 torch
 torchvision
-packaging
+onnx
+git+git://github.com/nerox8664/onnx2keras@master#egg=onnx2keras
