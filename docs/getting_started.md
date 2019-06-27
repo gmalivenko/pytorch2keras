@@ -1,5 +1,12 @@
 ## Basic usage
 
+To use the converter, import `pytorch_to_keras` function:
+
+```
+from pytorch2keras import pytorch_to_keras
+```
+
+
 It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 
 Firstly, we need to load (or create) a valid PyTorch model:

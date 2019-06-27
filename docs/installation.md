@@ -1,19 +1,21 @@
-To install ready-to-use package, you may use PIP:
+To install the package, the following ways may be used:
 
-```
-pip install pytorch2keras 
-```
+1. pypi (latest actual version):
 
-It's possible to install package with PIP right from git:
+    ```
+    pip install pytorch2keras 
+    ```
 
-```
-pip install -U git+https://github.com/nerox8664/pytorch2keras 
-```
+2. It's possible to install package with PIP right from git:
 
-Or to clone it manually and then install it with PIP:
+    ```
+    pip install -U git+https://github.com/nerox8664/pytorch2keras 
+    ```
 
-```
-git clone https://github.com/nerox8664/pytorch2keras 
-cd pytorch2keras
-pip install -e .
-```
+    Or to clone it manually and then install it with PIP:
+
+    ```
+    git clone https://github.com/nerox8664/pytorch2keras 
+    cd pytorch2keras
+    pip install -e .
+    ```

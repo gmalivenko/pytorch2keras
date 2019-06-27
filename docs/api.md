@@ -1,18 +1,17 @@
-Here is the only method `pytorch_to_keras` from `pytorch2keras` module.
+Since version `0.2.1` the converter has the following API:
 
 ```
 def pytorch_to_keras(
-    model, args, input_shapes,
-    change_ordering=False, training=False, verbose=False, names=False,
-)
+    model, args, input_shapes=None,
+    change_ordering=False, verbose=False, name_policy=None,
+):
 ```
 
 Options:
 
-* `model` - a PyTorch module to convert;
-* `args` - list of dummy variables with proper shapes;
-* `input_shapes` - list with shape tuples;
-* `change_ordering` - boolean, if enabled, the converter will try to change `BCHW` to `BHWC`
-* `training` - boolean, switch model to training mode (never use it)
-* `verbose` - boolean, verbose output
-* `names` - choice from [`keep`, `short`, `random`]. The selector set the target layer naming policy.
+* `model` - a PyTorch model (nn.Module) to convert;
+* `args` - a list of dummy variables with proper shapes;
+* `input_shapes` - (experimental) list with overrided shapes for inputs;
+* `change_ordering` - (experimental) boolean, if enabled, the converter will try to change `BCHW` to `BHWC`
+* `verbose` - boolean, detailed log of conversion
+* `name_policy` - (experimental) choice from [`keep`, `short`, `random`]. The selector set the target layer naming policy.

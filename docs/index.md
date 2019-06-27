@@ -4,4 +4,4 @@
 [![Downloads](https://pepy.tech/badge/pytorch2keras)](https://pepy.tech/project/pytorch2keras)
 ![PyPI](https://img.shields.io/pypi/v/pytorch2keras.svg)
 
-PyTorch to Keras model converter. This project is created to make a model conversation easier, so, the converter API is developed with maximal simplicity.
+PyTorch to Keras model converter. This project is created to make a model conversation as easier as possible.
