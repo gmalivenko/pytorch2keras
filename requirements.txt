@@ -4,4 +4,4 @@ numpy
 torch
 torchvision
 onnx
-git+git://github.com/nerox8664/onnx2keras@master#egg=onnx2keras
+onnx2keras
