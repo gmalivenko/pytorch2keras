@@ -41,7 +41,7 @@ def pytorch_to_keras(
     if input_shapes:
         logger.warning('Custom shapes isn\'t supported now.')
 
-    if not isinstance(input_shapes, list):
+    if input_shapes and not isinstance(input_shapes, list):
         input_shapes = [input_shapes]
 
     if not isinstance(args, list):
