@@ -21,7 +21,7 @@ with open('README.md') as f:
 
 
 setup(name='pytorch2keras',
-      version='0.2.0',
+      version='0.2.1',
       description='The deep learning models convertor',
       long_description=long_description,
       long_description_content_type='text/markdown',
