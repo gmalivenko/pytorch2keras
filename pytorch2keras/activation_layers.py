@@ -22,7 +22,7 @@ def convert_elu(params, w_name, scope_name, inputs, layers, weights, names):
     print('Converting elu ...')
 
     if names == 'short':
-        tf_name = 'ELU' + random_string(4)
+        tf_name = 'ELU' + random_string(5)
     elif names == 'keep':
         tf_name = w_name
     else:
