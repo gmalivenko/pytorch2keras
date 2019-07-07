@@ -5,6 +5,7 @@ The PyTorch2Keras converter interface
 from onnx2keras import onnx_to_keras
 import torch
 import onnx
+from onnx import optimizer
 import io
 import logging
 
@@ -12,6 +13,7 @@ import logging
 def pytorch_to_keras(
     model, args, input_shapes=None,
     change_ordering=False, verbose=False, name_policy=None,
+    use_optimizer=False, do_constant_folding=False
 ):
     """
     By given PyTorch model convert layers with ONNX.
@@ -27,7 +29,6 @@ def pytorch_to_keras(
     Returns:
         model: created keras model.
     """
-
     logger = logging.getLogger('pytorch2keras')
 
     if verbose:
@@ -64,10 +65,19 @@ def pytorch_to_keras(
     logger.debug(output_names)
 
     stream = io.BytesIO()
-    torch.onnx.export(model, args, stream, verbose=verbose, input_names=input_names, output_names=output_names)
+    torch.onnx.export(model, args, stream, do_constant_folding=do_constant_folding, verbose=verbose, input_names=input_names, output_names=output_names)
 
     stream.seek(0)
     onnx_model = onnx.load(stream)
+    if use_optimizer:
+        if use_optimizer is True:
+            optimizer2run = optimizer.get_available_passes()
+        else:
+            use_optimizer = set(use_optimizer)
+            optimizer2run = [x for x in optimizer.get_available_passes() if x in use_optimizer]
+        logger.info("Running optimizer:\n%s", "\n".join(optimizer2run))
+        onnx_model = optimizer.optimize(onnx_model, optimizer2run)
+
     k_model = onnx_to_keras(onnx_model=onnx_model, input_names=input_names,
                             input_shapes=input_shapes, name_policy=name_policy,
                             verbose=verbose, change_ordering=change_ordering)
