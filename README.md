@@ -21,7 +21,7 @@ pip install pytorch2keras
 To use the converter properly, please, make changes in your `~/.keras/keras.json`:
 
 
-```
+```json
 ...
 "backend": "tensorflow",
 "image_data_format": "channels_first",
@@ -36,13 +36,13 @@ Here is a short instruction how to get a tensorflow.js model:
 
 1. First of all, you have to convert your model to Keras with this converter:
 
-```
+```python
 k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True, names='short')  
 ```
 
 2. Now you have Keras model. You can save it as h5 file and then convert it with `tensorflowjs_converter` but it doesn't work sometimes. As alternative, you may get Tensorflow Graph and save it as a frozen model:
 
-```
+```python
 # Function below copied from here:
 # https://stackoverflow.com/questions/45466020/how-to-export-keras-h5-to-tensorflow-pb 
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
@@ -88,7 +88,7 @@ print([i for i in k_model.outputs])
 
 3. You will see the output layer name, so, now it's time to convert `my_model.pb` to tfjs model:
 
-```
+```bash
 tensorflowjs_converter  \
     --input_format=tf_frozen_model \
     --output_node_names='TANHTObs/Tanh' \
@@ -98,10 +98,10 @@ tensorflowjs_converter  \
 
 4. Thats all!
 
-```
+```js
 const MODEL_URL = `model_tfjs/tensorflowjs_model.pb`;
 const WEIGHTS_URL = `model_tfjs/weights_manifest.json`;
-cont model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
+const model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 ```
 
 ## How to use
@@ -110,7 +110,7 @@ It's the converter of PyTorch graph to a Keras (Tensorflow backend) model.
 
 Firstly, we need to load (or create) a valid PyTorch model:
 
-```
+```python
 class TestConv2d(nn.Module):
     """
     Module for Conv2d testing
@@ -132,14 +132,14 @@ model = TestConv2d()
 
 The next step - create a dummy variable with correct shape:
 
-```
+```python
 input_np = np.random.uniform(0, 1, (1, 10, 32, 32))
 input_var = Variable(torch.FloatTensor(input_np))
 ```
 
 We use the dummy-variable to trace the model (with jit.trace):
 
-```
+```python
 from pytorch2keras import pytorch_to_keras
 # we should specify shape of the input tensor
 k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
@@ -147,7 +147,7 @@ k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)
 
 You can also set H and W dimensions to None to make your model shape-agnostic (e.g. fully convolutional netowrk):
 
-```
+```python
 from pytorch2keras.converter import pytorch_to_keras
 # we should specify shape of the input tensor
 k_model = pytorch_to_keras(model, input_var, [(10, None, None,)], verbose=True)  
@@ -160,7 +160,7 @@ That's all! If all the modules have converted properly, the Keras model will be 
 
 Here is the only method `pytorch_to_keras` from `pytorch2keras` module.
 
-```
+```python
 def pytorch_to_keras(
     model, args, input_shapes=None,
     change_ordering=False, verbose=False, name_policy=None,
