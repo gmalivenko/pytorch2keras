@@ -69,4 +69,7 @@ def pytorch_to_keras(
     stream.seek(0)
     onnx_model = onnx.load(stream)
 
+    k_model = onnx_to_keras(onnx_model=onnx_model, input_names=input_names,
+                            input_shapes=input_shapes, name_policy=name_policy,
+                            verbose=verbose, change_ordering=change_ordering)
     return k_model
