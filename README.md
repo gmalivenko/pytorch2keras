@@ -30,14 +30,14 @@ To use the converter properly, please, make changes in your `~/.keras/keras.json
 
 ## Tensorflow.js
 
-For the proper conversion to a tensorflow.js format, please use the new flag `names='short'`.
+For the proper conversion to a tensorflow.js format, please use the new flag `name_policy='short'`.
 
 Here is a short instruction how to get a tensorflow.js model:
 
 1. First of all, you have to convert your model to Keras with this converter:
 
 ```python
-k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True, names='short')  
+k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True, name_policy='short')  
 ```
 
 2. Now you have Keras model. You can save it as h5 file and then convert it with `tensorflowjs_converter` but it doesn't work sometimes. As alternative, you may get Tensorflow Graph and save it as a frozen model:
