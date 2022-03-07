@@ -145,7 +145,7 @@ from pytorch2keras import pytorch_to_keras
 k_model = pytorch_to_keras(model, input_var, [(10, 32, 32,)], verbose=True)  
 ```
 
-You can also set H and W dimensions to None to make your model shape-agnostic (e.g. fully convolutional netowrk):
+You can also set H and W dimensions to None to make your model shape-agnostic (e.g. fully convolutional network):
 
 ```python
 from pytorch2keras.converter import pytorch_to_keras
